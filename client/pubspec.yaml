@@ -37,6 +37,8 @@ dependencies:
   carousel_slider: ^4.2.1
   kakaomap_webview: ^0.6.2
   kakao_map_plugin: ^0.1.0
+  geolocator: ^10.1.0
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg4
   assets:
+    - .env
     - assets/
     - assets/images/logo.png
     - assets/images/image1.jpg

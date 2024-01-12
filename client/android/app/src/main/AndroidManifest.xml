@@ -1,8 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+<meta-data android:name="com.kakao.sdk.AppKey" android:value="edcccb0eee3b77efdde92e568b7436c7"/>
     <application
         android:label="client"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

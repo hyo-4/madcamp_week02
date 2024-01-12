@@ -1,3 +1,5 @@
+import 'package:client/pages/book_add_page.dart';
+import 'package:client/pages/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -96,7 +98,12 @@ class _MainPageState extends State<MainPage> {
                 ),
                 InkWell(
                   onTap: () {
-                    // Navigate to 'NearbyBooks' page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MapPage(),
+                      ),
+                    );
                   },
                   child: const RoundedContainerWithBackground(
                     backgroundImage:
@@ -106,7 +113,12 @@ class _MainPageState extends State<MainPage> {
                 ),
                 InkWell(
                   onTap: () {
-                    // Navigate to 'RegisterBooks' page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BookAdd(),
+                      ),
+                    );
                   },
                   child: const RoundedContainerWithBackground(
                     backgroundImage:

@@ -3,13 +3,13 @@
 <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-
-<meta-data android:name="com.kakao.sdk.AppKey" android:value="edcccb0eee3b77efdde92e568b7436c7"/>
     <application
         android:label="client"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-         android:usesCleartextTraffic="true">
+         android:usesCleartextTraffic="true"
+         android:enableOnBackInvokedCallback="true">
+         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyATdmMKbuJJR0rfiXn_WcjLmawhKnt7fxo"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

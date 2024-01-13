@@ -34,7 +34,15 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
   Future<void> _initMap() async {
     await _getCurrentLocation();
   }
-
+  void _updateCameraPosition() {
+    if (currentLocation != null) {
+      mapController?.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(currentLocation!.latitude, currentLocation!.longitude),
+        ),
+      );
+    }
+  }
   Future<void> _getCurrentLocation() async {
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
@@ -42,6 +50,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
 
       currentLocation = LatLng(position.latitude, position.longitude);
       print(currentLocation);
+      _updateCameraPosition();
     });
   }
 

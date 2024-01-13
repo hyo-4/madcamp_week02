@@ -68,10 +68,10 @@ class _SignInState extends State<SignIn> {
       //   title: Text('Login Page'),
       // ),
       backgroundColor: Color(0xFFF0E3D0),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child:
+          Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             SizedBox(height: 100),
@@ -119,6 +119,16 @@ class _SignInState extends State<SignIn> {
               ),
             ),
           ],
+        ),
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
     );

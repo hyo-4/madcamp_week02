@@ -1,15 +1,18 @@
 import 'dart:async';
 
+import 'package:client/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class Location {
+class Book {
+  String name;
+  String ownername;
   double latitude;
   double longitude;
 
-  Location(this.latitude, this.longitude);
+  Book(this.name, this.ownername, this.latitude, this.longitude);
 }
 
 class MapPage extends StatefulWidget {
@@ -99,19 +102,28 @@ class _MapPageState extends State<MapPage> {
         position: LatLng(currentPosition!.latitude, currentPosition!.longitude),
         infoWindow: const InfoWindow(title: "Current Location"),
       ));
+
       for (var markerData in dummyMarkerData) {
-        markers.add(Marker(
-          markerId: MarkerId(markerData["name"]),
-          position: LatLng(markerData["latitude"], markerData["longitude"]),
-          infoWindow: InfoWindow(
-            title: markerData["name"],
-            snippet:
-                'Additional Info: ${markerData["placename"]}', // Customize this line as needed
-          ),
-          onTap: () {
-            _toggleListViewVisibility();
-          },
-        ));
+        double distance = Geolocator.distanceBetween(
+          currentPosition!.latitude,
+          currentPosition!.longitude,
+          markerData["latitude"],
+          markerData["longitude"],
+        );
+        //일정범위 이내의 마커만 불러옴
+        if (distance <= 120) {
+          markers.add(Marker(
+            markerId: MarkerId(markerData["name"]),
+            position: LatLng(markerData["latitude"], markerData["longitude"]),
+            infoWindow: InfoWindow(
+              title: markerData["name"],
+              snippet: 'Additional Info: ${markerData["placename"]}',
+            ),
+            onTap: () {
+              _toggleListViewVisibility();
+            },
+          ));
+        }
       }
     }
   }
@@ -164,6 +176,16 @@ class _MapPageState extends State<MapPage> {
               zoom: 16.0,
             ),
             markers: markers,
+            circles: {
+              Circle(
+                circleId: const CircleId('circle'),
+                center: currentLatLng,
+                radius: 120,
+                fillColor: Colors.blue.withOpacity(0.2),
+                strokeColor: Colors.blue,
+                strokeWidth: 2,
+              ),
+            },
           ),
           ClipRRect(
             borderRadius: const BorderRadius.only(
@@ -182,60 +204,75 @@ class _MapPageState extends State<MapPage> {
                     topRight: Radius.circular(50.0),
                   ),
                   child: Container(
-                      color: Colors.white,
-                      child: ListView.builder(
-                        controller: scrollController,
-                        itemCount: dummyMarkerData.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          return Expanded(
-                            child: Container(
-                              height: 110,
-                              margin: EdgeInsets.only(top: index == 0 ? 30 : 0),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              child: ExpansionTile(
-                                title: ListTile(
-                                  title: Text(dummyMarkerData[index]["name"]),
-                                  subtitle: Text(
-                                      "Book Owner: ${dummyMarkerData[index]["owner"]}"),
-                                  leading: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.rectangle,
-                                      image: DecorationImage(
-                                        fit: BoxFit.cover,
-                                        image: AssetImage(
-                                            'assets/images/blankimg.png'),
-                                      ),
-                                    ),
+                    color: Colors.white,
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: dummyMarkerData.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Theme(
+                          data: Theme.of(context)
+                              .copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            title: ListTile(
+                              title: Text(dummyMarkerData[index]["name"]),
+                              subtitle: Text(
+                                  "Book Owner: ${dummyMarkerData[index]["owner"]}"),
+                              leading: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: AssetImage(
+                                        'assets/images/blankimg.png'),
                                   ),
-                                  onTap: () {
-                                    _focusMarkerOnListViewItemClick(
-                                      LatLng(
-                                        dummyMarkerData[index]["latitude"],
-                                        dummyMarkerData[index]["longitude"],
-                                      ),
-                                      dummyMarkerData[index]['name'],
-                                    );
-                                  },
                                 ),
-                                children: const <Widget>[
-                                  Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Text(
-                                      'Additional information or hidden text here.',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
+                              ),
+                              onTap: () {
+                                _focusMarkerOnListViewItemClick(
+                                  LatLng(
+                                    dummyMarkerData[index]["latitude"],
+                                    dummyMarkerData[index]["longitude"],
+                                  ),
+                                  dummyMarkerData[index]['name'],
+                                );
+                              },
+                            ),
+                            children: <Widget>[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const Text("이 책을 읽고 싶어요!"),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 30.0),
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const MainPage()),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16.0),
+                                          backgroundColor: Colors.amber,
+                                        ),
+                                        child: const Text("1:1채팅방으로 이동하기")),
                                   ),
                                 ],
                               ),
-                            ),
-                          );
-                        },
-                      )),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 );
               },
             ),

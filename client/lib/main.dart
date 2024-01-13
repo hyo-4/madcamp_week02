@@ -1,13 +1,13 @@
 import 'package:client/pages/main_page.dart';
 import 'package:flutter/material.dart';
-import 'package:kakao_map_plugin/kakao_map_plugin.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
-  String kakaoMapKey = dotenv.get('KAKAOMAP_API_KEY');
+  // String kakaoMapKey = dotenv.get('KAKAOMAP_API_KEY');
   WidgetsFlutterBinding.ensureInitialized();
-  AuthRepository.initialize(appKey: kakaoMapKey);
+  // AuthRepository.initialize(appKey: kakaoMapKey);
+
   runApp(const MyApp());
 }
 
@@ -45,8 +45,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: MainPage()),
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: "main",
+      home: MainPage(),
     );
   }
 }

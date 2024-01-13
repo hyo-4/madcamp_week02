@@ -71,6 +71,7 @@ flutter:
     - .env
     - assets/
     - assets/images/logo.png
+    - assets/logo_vertical.png
     - assets/images/image1.jpg
     - assets/images/image2.jpg
     - assets/images/image3.jpg

@@ -96,52 +96,59 @@ class _MainPageState extends State<MainPage> {
                 const SizedBox(
                   height: 5,
                 ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MapPage(),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MapPage(),
+                            ),
+                          );
+                        },
+                        child: const RoundedContainerWithBackground(
+                          backgroundImage:
+                              'assets/images/nearby_books_background.jpg',
+                          text: '주변 대여가능 책 보기',
+                        ),
                       ),
-                    );
-                  },
-                  child: const RoundedContainerWithBackground(
-                    backgroundImage:
-                        'assets/images/nearby_books_background.jpg',
-                    text: '주변 대여가능 책 보기',
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const BookAdd(),
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BookAdd(),
+                            ),
+                          );
+                        },
+                        child: const RoundedContainerWithBackground(
+                          backgroundImage:
+                              'assets/images/register_books_background.jpg',
+                          text: '책 등록하기',
+                        ),
                       ),
-                    );
-                  },
-                  child: const RoundedContainerWithBackground(
-                    backgroundImage:
-                        'assets/images/register_books_background.jpg',
-                    text: '책 등록하기',
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    // Navigate to 'SearchBooks' page
-                  },
-                  child: const RoundedContainerWithBackground(
-                    backgroundImage:
-                        'assets/images/search_books_background.jpg',
-                    text: '책 검색',
-                  ),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          // Navigate to 'SearchBooks' page
+                        },
+                        child: const RoundedContainerWithBackground(
+                          backgroundImage:
+                              'assets/images/search_books_background.jpg',
+                          text: '책 검색',
+                        ),
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
-          ),
+          )
         ],
       ),
     );

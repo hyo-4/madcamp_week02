@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'locationselector.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class BookAdd extends StatefulWidget {
@@ -22,6 +23,7 @@ class _BookAddState extends State<BookAdd> {
   TextEditingController _publisherController = TextEditingController();
   DateTime? _selectedDate;
   String? _imagePath;
+  LatLng? selectedLocation;
 
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
@@ -30,7 +32,72 @@ class _BookAddState extends State<BookAdd> {
     if (pickedFile != null) {
       setState(() {
         _imagePath = pickedFile.path;
+        print(_imagePath);
       });
+    }
+  }
+  Future<void> _sendbookdata() async {
+    final apiUrl = Uri.parse("http://172.10.7.78:80/savebook");
+
+    // Get the selected location
+    // LatLng selectedLocation = await Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => MapSelectionScreen()),
+    // );
+    // LatLng selectedLocation = await Navigator.pop();
+    // Check if all required data is available
+    if (
+        _selectedDate != null &&
+        _bookNameController.text.isNotEmpty &&
+        _authorController.text.isNotEmpty &&
+        _publisherController.text.isNotEmpty &&
+        _imagePath != null) {
+      try {
+        // Create a map with your data
+        final data = {
+          "registerId": "your_register_id", // Replace with actual registerId
+          "bookName": _bookNameController.text,
+          "author": _authorController.text,
+          "publisher": _publisherController.text,
+          "publishedYear": _selectedDate!.year.toString(),
+          "latitude": selectedLocation!.latitude.toString(),
+          "longitude": selectedLocation!.longitude.toString(),
+        };
+        print(data);
+        // Create a multipart request
+        var request = http.MultipartRequest('POST', apiUrl);
+
+        // Add the image file to the request
+        request.files.add(await http.MultipartFile.fromPath('image', _imagePath!));
+
+        // Add other form data to the request
+        request.fields.addAll(data);
+        //add image file
+        List<int> imageBytes = await File(_imagePath!).readAsBytes();
+        request.files.add(http.MultipartFile.fromBytes(
+          'image',
+          imageBytes,
+          filename: 'image.jpg', // You can set any filename you prefer
+          contentType: MediaType('image', 'jpg'), // Adjust the content type accordingly
+        ));
+        // Send the request
+        final response = await request.send();
+
+        // Check the response
+        if (response.statusCode == 200) {
+          print("Data sent successfully");
+          // Handle success
+        } else {
+          print("Failed to send data. Status code: ${response.statusCode}");
+          // Handle failure
+        }
+      } catch (error) {
+        print("Error sending data: $error");
+        // Handle error
+      }
+    } else {
+      print("Some required data is missing");
+      // Handle missing data
     }
   }
 
@@ -120,15 +187,26 @@ class _BookAddState extends State<BookAdd> {
             ),
             const SizedBox(height: 10.0),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                selectedLocation = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MapSelectionScreen()),
                 );
+
+                // Use the selectedLocation as needed
+                if (selectedLocation != null) {
+                  print("Selected Latitude: ${selectedLocation!.latitude}");
+                  print("Selected Longitude: ${selectedLocation!.longitude}");
+                  // Do something with the selected location
+                }
               },
               child: Text(_selectedLocationAddress == null
                   ? 'Pick Location'
                   : 'Selected Location: $_selectedLocationAddress'),
+            ),
+            ElevatedButton(
+              onPressed: () => _sendbookdata(),
+              child: Text('책 등록'),
             ),
           ],
         ),

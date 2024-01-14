@@ -11,6 +11,7 @@ class MapSelectionScreen extends StatefulWidget {
 class _MapSelectionScreenState extends State<MapSelectionScreen> {
   GoogleMapController? mapController;
   LatLng currentLocation = LatLng(0, 0);
+  Marker? centerMarker;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
       );
     }
   }
+
   Future<void> _getCurrentLocation() async {
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
@@ -51,9 +53,20 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
       currentLocation = LatLng(position.latitude, position.longitude);
       print(currentLocation);
       _updateCameraPosition();
+      _updateCenterMarker(currentLocation);
     });
   }
 
+  void _updateCenterMarker(LatLng position) {
+    setState(() {
+      centerMarker = Marker(
+        markerId: MarkerId("centerMarker"),
+        position: position,
+        icon: BitmapDescriptor.defaultMarker,
+        infoWindow: InfoWindow(title: "Center Marker"),
+      );
+    });
+  }
   void _onMapCreated(GoogleMapController controller) {
     setState(() {
       mapController = controller;
@@ -63,12 +76,15 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
   void _onSelectLocation() {
     if (mapController != null) {
       mapController!.getLatLng(ScreenCoordinate(x: 0, y: 0)).then((LatLng latLng) {
-        print("Center Latitude: ${latLng.latitude}");
-        print("Center Longitude: ${latLng.longitude}");
+        // print("Center Latitude: ${latLng.latitude}");
+        // print("Center Longitude: ${latLng.longitude}");
+        Navigator.pop(context,latLng);
       });
     }
   }
-
+  void _onCameraMove(CameraPosition position) {
+    _updateCenterMarker(position.target);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,10 +95,21 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
           zoom: 15.0,
         ),
         myLocationButtonEnabled: false,
+        markers: Set.of([if (centerMarker != null) centerMarker!]),
+        onCameraMove: _onCameraMove,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onSelectLocation,
-        child: Icon(Icons.location_on),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0), // Adjust the bottom padding as needed
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: 200,
+            child: FloatingActionButton(
+              onPressed: _onSelectLocation,
+              child: Text('대여 장소를 현재 워치로 설정'),
+            ),
+          ),
+        ),
       ),
     );
   }

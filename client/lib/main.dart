@@ -1,5 +1,7 @@
+import 'package:client/services/user_controller.dart';
 import 'package:client/pages/signin.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -15,7 +17,9 @@ String converHash(String password) {
 void main() async {
   await dotenv.load(fileName: ".env");
 
-  runApp(const MyApp());
+  runApp(const GetMaterialApp(
+    home: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -27,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const LoginPage(),
+      home: const MainPage(),
     );
   }
 }
@@ -71,6 +75,7 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         print('login 성공');
         print('Response: ${response.body}');
+        userController.setUserData(jsonDecode(response.body));
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const MainPage()),

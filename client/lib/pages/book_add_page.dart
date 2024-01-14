@@ -8,6 +8,7 @@ import 'locationselector.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BookAdd extends StatefulWidget {
   const BookAdd({super.key});
@@ -54,8 +55,10 @@ class _BookAddState extends State<BookAdd> {
         _imagePath != null) {
       try {
         // Create a map with your data
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        var _register_id = (prefs.getString('user_id') ?? '');
         final data = {
-          "registerId": "your_register_id", // Replace with actual registerId
+          "registerId": _register_id, // Replace with actual registerId
           "bookName": _bookNameController.text,
           "author": _authorController.text,
           "publisher": _publisherController.text,

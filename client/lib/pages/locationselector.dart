@@ -11,6 +11,7 @@ class MapSelectionScreen extends StatefulWidget {
 class _MapSelectionScreenState extends State<MapSelectionScreen> {
   GoogleMapController? mapController;
   LatLng currentLocation = LatLng(0, 0);
+  LatLng centerLatLng = LatLng(0, 0);
   Marker? centerMarker;
 
   @override
@@ -18,6 +19,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
     super.initState();
     _checkLocationPermission();
   }
+
   Future<void> _checkLocationPermission() async {
     if (await Permission.location.isGranted) {
       await _initMap();
@@ -32,14 +34,16 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
       });
     }
   }
+
   Future<void> _initMap() async {
     await _getCurrentLocation();
   }
+
   void _updateCameraPosition() {
     if (currentLocation != null) {
       mapController?.animateCamera(
         CameraUpdate.newLatLng(
-          LatLng(currentLocation!.latitude, currentLocation!.longitude),
+          LatLng(currentLocation.latitude, currentLocation.longitude),
         ),
       );
     }
@@ -47,13 +51,13 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
 
   Future<void> _getCurrentLocation() async {
     Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+      desiredAccuracy: LocationAccuracy.high,
+    );
     setState(() {
-
       currentLocation = LatLng(position.latitude, position.longitude);
-      print(currentLocation);
+      centerLatLng = currentLocation; // Set the initial center to the current location
       _updateCameraPosition();
-      _updateCenterMarker(currentLocation);
+      _updateCenterMarker(centerLatLng);
     });
   }
 
@@ -67,6 +71,7 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
       );
     });
   }
+
   void _onMapCreated(GoogleMapController controller) {
     setState(() {
       mapController = controller;
@@ -74,17 +79,16 @@ class _MapSelectionScreenState extends State<MapSelectionScreen> {
   }
 
   void _onSelectLocation() {
-    if (mapController != null) {
-      mapController!.getLatLng(ScreenCoordinate(x: 0, y: 0)).then((LatLng latLng) {
-        // print("Center Latitude: ${latLng.latitude}");
-        // print("Center Longitude: ${latLng.longitude}");
-        Navigator.pop(context,latLng);
-      });
-    }
+    Navigator.pop(context, centerLatLng);
   }
+
   void _onCameraMove(CameraPosition position) {
-    _updateCenterMarker(position.target);
+    setState(() {
+      centerLatLng = position.target; // Update centerLatLng on camera move
+      _updateCenterMarker(centerLatLng);
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

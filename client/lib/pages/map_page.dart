@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'dart:convert';
 import 'package:client/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'chatpage.dart';
 
 class Book {
   String name;
@@ -27,6 +30,7 @@ class _MapPageState extends State<MapPage> {
   Position? currentPosition;
   bool isListViewVisible = false;
   Set<Marker> markers = {};
+  List<Map<String, dynamic>> books = [];
   List<Map<String, dynamic>> dummyMarkerData = [
     {
       "name": "book1",
@@ -65,13 +69,42 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+    initializeBooks();
     _checkLocationPermission();
+
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
+  Future<void> initializeBooks() async {
+    await get_all_books();
+    print(books);
+  }
+  Future<void> get_all_books() async {
+    try {
+      final response = await http.get(Uri.parse('http://172.10.7.78/get_all_books'));
 
+      if (response.statusCode == 200) {
+        // Parse the JSON response
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        // Access the 'books' key from the response and convert it to List<Map<String, dynamic>>
+        final List<dynamic> booksData = responseData['books'];
+        // print(booksData);
+        // Convert the data to the desired format (List<Map<String, dynamic>>)
+        setState(() {
+          books = List<Map<String, dynamic>>.from(booksData);
+        });
+      } else {
+        // Handle the error
+        print('Failed to fetch data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle network or parsing errors
+      print('Error: $e');
+    }
+  }
   Future<void> _checkLocationPermission() async {
     if (await Permission.location.isGranted) {
       _getCurrentLocation();
@@ -103,20 +136,21 @@ class _MapPageState extends State<MapPage> {
         infoWindow: const InfoWindow(title: "Current Location"),
       ));
 
-      for (var markerData in dummyMarkerData) {
+      for (var markerData in books) {
+        print(markerData);
         double distance = Geolocator.distanceBetween(
           currentPosition!.latitude,
           currentPosition!.longitude,
-          markerData["latitude"],
-          markerData["longitude"],
+          double.parse(markerData["latitude"]),
+          double.parse(markerData["longitude"]),
         );
         //일정범위 이내의 마커만 불러옴
-        if (distance <= 120) {
+        if (distance <= 1200) {
           markers.add(Marker(
-            markerId: MarkerId(markerData["name"]),
-            position: LatLng(markerData["latitude"], markerData["longitude"]),
+            markerId: MarkerId(markerData["book_name"]),
+            position: LatLng(double.parse(markerData["latitude"]), double.parse(markerData["longitude"])),
             infoWindow: InfoWindow(
-              title: markerData["name"],
+              title: markerData["book_name"],
               snippet: 'Additional Info: ${markerData["placename"]}',
             ),
             onTap: () {
@@ -207,35 +241,42 @@ class _MapPageState extends State<MapPage> {
                     color: Colors.white,
                     child: ListView.builder(
                       controller: scrollController,
-                      itemCount: dummyMarkerData.length,
+                      itemCount: books.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Theme(
                           data: Theme.of(context)
                               .copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             title: ListTile(
-                              title: Text(dummyMarkerData[index]["name"]),
+                              title: Text(books[index]["book_name"]),
                               subtitle: Text(
-                                  "Book Owner: ${dummyMarkerData[index]["owner"]}"),
+                                  "Book Owner: ${books[index]["register_id"]}"),
                               leading: Container(
                                 width: 40,
                                 height: 40,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   shape: BoxShape.rectangle,
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: AssetImage(
-                                        'assets/images/blankimg.png'),
-                                  ),
+                                ),
+                                child: Image(
+                                  fit: BoxFit.cover,
+                                  image: books[index]['img_url'] != null
+                                      ? NetworkImage(books[index]['img_url']) as ImageProvider<Object>
+                                      : AssetImage('assets/images/image1.jpg') as ImageProvider<Object>,
+                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                    print('Error loading image: $error');
+                                    // Return a placeholder image or handle the error as needed
+                                    return Image.asset('assets/images/image1.jpg', fit: BoxFit.cover);
+                                  },
                                 ),
                               ),
                               onTap: () {
                                 _focusMarkerOnListViewItemClick(
                                   LatLng(
-                                    dummyMarkerData[index]["latitude"],
-                                    dummyMarkerData[index]["longitude"],
+                                    double.parse(books[index]["latitude"]),
+                                    double.parse(books[index]["longitude"]),
                                   ),
-                                  dummyMarkerData[index]['name'],
+                                  books[index]['book_name'],
+                                  // 'Test'
                                 );
                               },
                             ),
@@ -254,8 +295,8 @@ class _MapPageState extends State<MapPage> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const MainPage()),
+                                                builder: (context) => ChatPage(bookIndex: books[index]['book_index']),
+                                            ),
                                           );
                                         },
                                         style: ElevatedButton.styleFrom(

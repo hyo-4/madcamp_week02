@@ -1,7 +1,5 @@
-import 'package:client/services/user_controller.dart';
 import 'package:client/pages/signin.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -19,9 +17,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  runApp(const GetMaterialApp(
-    home: MyApp(),
-  ));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,7 +29,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MainPage(),
+      home: const LoginPage(),
     );
   }
 }
@@ -84,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // Save the current date and time to 'lastlogedintime' in SharedPreferences
         pref.setString('lastlogedintime', formattedTime);
-        userController.setUserData(jsonDecode(response.body));
+
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const MainPage()),

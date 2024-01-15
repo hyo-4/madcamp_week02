@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'dart:convert';
 import 'package:client/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -29,9 +28,8 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
   Position? currentPosition;
-  List<dynamic> books = [];
-  Set<Marker> markers = {};
   List<Map<String, dynamic>> books = [];
+  Set<Marker> markers = {};
   List<Map<String, dynamic>> dummyMarkerData = [
     {
       "name": "book1",
@@ -70,21 +68,18 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    initializeBooks();
     _checkLocationPermission();
-    fetchBookData();
+    getallbooks();
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
-  Future<void> initializeBooks() async {
-    await get_all_books();
-    print(books);
-  }
-  Future<void> get_all_books() async {
+
+  Future<void> getallbooks() async {
     try {
-      final response = await http.get(Uri.parse('http://172.10.7.78/get_all_books'));
+      final response =
+          await http.get(Uri.parse('http://172.10.7.78/get_all_books'));
 
       if (response.statusCode == 200) {
         // Parse the JSON response
@@ -96,6 +91,7 @@ class _MapPageState extends State<MapPage> {
         // Convert the data to the desired format (List<Map<String, dynamic>>)
         setState(() {
           books = List<Map<String, dynamic>>.from(booksData);
+          print(books);
         });
       } else {
         // Handle the error
@@ -106,6 +102,7 @@ class _MapPageState extends State<MapPage> {
       print('Error: $e');
     }
   }
+
   Future<void> _checkLocationPermission() async {
     if (await Permission.location.isGranted) {
       _getCurrentLocation();
@@ -114,27 +111,27 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  Future<void> fetchBookData() async {
-    final Uri url = Uri.parse('http://172.10.7.78:80/get_all_books');
+  // Future<void> fetchBookData() async {
+  //   final Uri url = Uri.parse('http://172.10.7.78/get_all_books');
 
-    try {
-      final response = await http.get(url);
+  //   try {
+  //     final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        setState(() {
-          books = json.decode(response.body)['books'];
-        });
-      } else {
-        print(
-            'Failed to load books. Status Code: ${response.statusCode}, Response: ${response.body}');
-        throw Exception('Failed to load books');
-      }
-    } catch (error) {
-      // Handle other errors, such as network errors.
-      print('Error during book data fetch: $error');
-      throw Exception('Failed to load books');
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       setState(() {
+  //         books = json.decode(response.body)['books'];
+  //       });
+  //     } else {
+  //       print(
+  //           'Failed to load books. Status Code: ${response.statusCode}, Response: ${response.body}');
+  //       throw Exception('Failed to load books');
+  //     }
+  //   } catch (error) {
+  //     // Handle other errors, such as network errors.
+  //     print('Error during book data fetch: $error');
+  //     throw Exception('Failed to load books');
+  //   }
+  // }
 
   void _getCurrentLocation() async {
     try {
@@ -173,17 +170,15 @@ class _MapPageState extends State<MapPage> {
         if (distance <= 1200) {
           markers.add(Marker(
             markerId: MarkerId(markerData["book_name"]),
-            position: LatLng(double.parse(markerData["latitude"]), double.parse(markerData["longitude"])),
+            position: LatLng(double.parse(markerData["latitude"]),
+                double.parse(markerData["longitude"])),
             infoWindow: InfoWindow(
               title: markerData["book_name"],
               snippet: 'Additional Info: ${markerData["placename"]}',
             ),
-            onTap: () {
-              _toggleListViewVisibility();
-            },
+            onTap: () {},
           ));
         }
-
       }
     }
   }
@@ -268,18 +263,23 @@ class _MapPageState extends State<MapPage> {
                               leading: Container(
                                 width: 40,
                                 height: 40,
-                                decoration: BoxDecoration(
+                                decoration: const BoxDecoration(
                                   shape: BoxShape.rectangle,
                                 ),
                                 child: Image(
                                   fit: BoxFit.cover,
                                   image: books[index]['img_url'] != null
-                                      ? NetworkImage(books[index]['img_url']) as ImageProvider<Object>
-                                      : AssetImage('assets/images/image1.jpg') as ImageProvider<Object>,
-                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                      ? NetworkImage(books[index]['img_url'])
+                                      : const AssetImage(
+                                              'assets/placeholder_image.png')
+                                          as ImageProvider,
+                                  errorBuilder: (BuildContext context,
+                                      Object error, StackTrace? stackTrace) {
                                     print('Error loading image: $error');
                                     // Return a placeholder image or handle the error as needed
-                                    return Image.asset('assets/images/image1.jpg', fit: BoxFit.cover);
+                                    return Image.asset(
+                                        'assets/images/image1.jpg',
+                                        fit: BoxFit.cover);
                                   },
                                 ),
                               ),
@@ -309,7 +309,9 @@ class _MapPageState extends State<MapPage> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                                builder: (context) => ChatPage(bookIndex: books[index]['book_index']),
+                                              builder: (context) => ChatPage(
+                                                  bookIndex: books[index]
+                                                      ['book_index']),
                                             ),
                                           );
                                         },

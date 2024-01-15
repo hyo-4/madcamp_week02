@@ -2,15 +2,27 @@ import 'package:client/pages/book_add_page.dart';
 import 'package:client/pages/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
-
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
+  String userId = ''; // Initialize with an empty string
+  @override
+  void initState() {
+    super.initState();
+    loadUserId(); // Load the user ID when the widget is initialized
+  }
+  Future<void> loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ?? ''; // Assign the user ID or an empty string if it's not available
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +89,7 @@ class _MainPageState extends State<MainPage> {
                   height: 20,
                 ),
                 InfiniteSlider(),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
                     padding: EdgeInsets.all(10),
@@ -86,7 +98,7 @@ class _MainPageState extends State<MainPage> {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('oo 님 환영합니다. '),
+                            Text('$userId 님 환영합니다.'),
                           ],
                         ),
                         SizedBox(width: 10),

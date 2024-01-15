@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:client/pages/main_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String converHash(String password) {
   final bytes = utf8.encode(password); // 비밀번호와 유니크 키를 바이트로 변환
@@ -16,7 +17,8 @@ String converHash(String password) {
 
 void main() async {
   await dotenv.load(fileName: ".env");
-
+  WidgetsFlutterBinding.ensureInitialized();
+  await SharedPreferences.getInstance();
   runApp(const GetMaterialApp(
     home: MyApp(),
   ));
@@ -75,6 +77,13 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         print('login 성공');
         print('Response: ${response.body}');
+        final SharedPreferences pref = await SharedPreferences.getInstance();
+        pref.setString('user_id', data['id']);
+        DateTime currentTime = DateTime.now();
+        String formattedTime = currentTime.toLocal().toString();
+
+        // Save the current date and time to 'lastlogedintime' in SharedPreferences
+        pref.setString('lastlogedintime', formattedTime);
         userController.setUserData(jsonDecode(response.body));
         Navigator.push(
           context,

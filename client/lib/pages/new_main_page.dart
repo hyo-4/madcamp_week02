@@ -1,20 +1,33 @@
 import 'package:client/pages/book_add_page.dart';
 import 'package:client/pages/book_search_page.dart';
 import 'package:client/pages/map_page.dart';
+import 'package:client/pages/my_page.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-class MainPage extends StatefulWidget {
-  const MainPage({Key? key}) : super(key: key);
+class NewMainPage extends StatefulWidget {
+  const NewMainPage({Key? key}) : super(key: key);
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<NewMainPage> createState() => _NewMainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class Book {
+  final String title;
+  final String imagePath;
+  final String description;
+
+  Book(
+      {required this.title,
+      required this.imagePath,
+      required this.description});
+}
+
+class _NewMainPageState extends State<NewMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEEE9E0),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -27,7 +40,7 @@ class _MainPageState extends State<MainPage> {
                   children: [
                     Image.asset(
                       "assets/images/logo.png",
-                      width: 220,
+                      width: 210,
                       fit: BoxFit.cover,
                     ),
                   ],
@@ -63,7 +76,14 @@ class _MainPageState extends State<MainPage> {
                     width: 38,
                     height: 38,
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyPage(),
+                          ),
+                        );
+                      },
                       icon: const SizedBox.shrink(),
                     ),
                   ),
@@ -77,6 +97,23 @@ class _MainPageState extends State<MainPage> {
                 const SizedBox(
                   height: 20,
                 ),
+                const Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Text(
+                      '이 주 베스트',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
                 InfiniteSlider(),
                 const Align(
                   alignment: Alignment.centerLeft,
@@ -87,7 +124,12 @@ class _MainPageState extends State<MainPage> {
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('oo 님 환영합니다. '),
+                            Text(
+                              'oo 님 환영합니다. ',
+                              style: TextStyle(
+                                fontSize: 22,
+                              ),
+                            ),
                           ],
                         ),
                         SizedBox(width: 10),
@@ -113,7 +155,7 @@ class _MainPageState extends State<MainPage> {
                         child: const RoundedContainerWithBackground(
                           backgroundImage:
                               'assets/images/nearby_books_background.jpg',
-                          text: '주변 대여가능 책 보기',
+                          text: '주변 책 보기',
                         ),
                       ),
                     ),
@@ -163,39 +205,106 @@ class _MainPageState extends State<MainPage> {
 }
 
 class InfiniteSlider extends StatelessWidget {
-  final List<String> imageList = [
-    'assets/images/image1.jpg',
-    'assets/images/image2.jpg',
-    'assets/images/image3.jpg',
-    'assets/images/image4.jpg',
-    'assets/images/image5.jpg',
+  final List<Book> bookList = [
+    Book(
+      title: '[시/에세이]읽을,거리',
+      description:
+          '난다의 시의적절, 시인 김민정이 매일매일 그러모은 1월의, 1월에 의한, 1월을 위한 단 한 권의 읽을거리',
+      imagePath: 'assets/images/image1.jpeg',
+    ),
+    Book(
+      title: '남에게 보여주려고 인생을 낭비하지 마라',
+      description: '“얄팍한 행복 대신 단단한 외로움을 선택하라!” 니체, 톨스토이, 삶과 지혜에 대한 격언',
+      imagePath: 'assets/images/image2.jpeg',
+    ),
+    Book(
+      title: '오늘도 딴생각에 빠진 당신에게',
+      description:
+          '도파민과 검색의 덫에 갇혀버린 집중력 점점 산만해지는 우리의 멘탈초 단위로 흩어지는 마음을 한곳으로 모으기',
+      imagePath: 'assets/images/image3.jpeg',
+    ),
+    Book(
+      title: '죽음이 물었다, 어떻게 살 거냐고',
+      description: '찬란한 생의 끝에 만난 마지막 문장들',
+      imagePath: 'assets/images/image4.jpeg',
+    ),
+    Book(
+      title: '맡겨진 소녀',
+      description:
+          '『맡겨진 소녀』는 2009년 데이비 번스 문학상을 수상한 작품으로, 애정 없는 부모로부터 낯선 친척 집에 맡겨진 한 소녀의 이야기를 그린다. ',
+      imagePath: 'assets/images/image5.jpeg',
+    ),
   ];
 
-  InfiniteSlider({super.key});
+  InfiniteSlider({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
-        height: 230.0,
+        height: 190.0,
         autoPlay: true,
         enlargeCenterPage: true,
         autoPlayInterval: const Duration(seconds: 2),
         viewportFraction: 1,
         scrollDirection: Axis.horizontal,
       ),
-      items: imageList.map((String imagePath) {
+      items: bookList.map((Book book) {
         return Builder(
           builder: (BuildContext context) {
             return Container(
               width: MediaQuery.of(context).size.width,
-              margin: const EdgeInsets.symmetric(horizontal: 5.0),
-              decoration: const BoxDecoration(
-                color: Colors.amber,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    offset: Offset(0, 2),
+                    blurRadius: 6,
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          book.title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          book.description,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        book.imagePath,
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        width: double.infinity,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -218,11 +327,10 @@ class RoundedContainerWithBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(15),
+      margin: const EdgeInsets.all(5),
       width: MediaQuery.of(context).size.width,
-      height: 150,
+      height: 250,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
         image: DecorationImage(
           image: AssetImage(backgroundImage),
           fit: BoxFit.cover,
@@ -233,17 +341,13 @@ class RoundedContainerWithBackground extends StatelessWidget {
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 25, color: Colors.white),
+          style: const TextStyle(
+            fontSize: 22,
+            color: Colors.white,
+            fontWeight: FontWeight.w400,
+          ),
         ),
       ),
     );
   }
-}
-
-void main() {
-  runApp(
-    const MaterialApp(
-      home: MainPage(),
-    ),
-  );
 }

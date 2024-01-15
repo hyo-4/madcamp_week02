@@ -1,3 +1,4 @@
+import 'package:client/pages/new_main_page.dart';
 import 'package:client/pages/signin.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +18,9 @@ void main() async {
   await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  runApp(const MyApp());
+  runApp(const MaterialApp(
+    home: MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -83,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
+          MaterialPageRoute(builder: (context) => const NewMainPage()),
         );
       } else {
         print('Failed to send data. Status code: ${response.statusCode}');

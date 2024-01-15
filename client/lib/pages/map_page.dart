@@ -64,6 +64,9 @@ class _MapPageState extends State<MapPage> {
       "image": "/asset/images/image1.jpg"
     },
   ];
+  double minHeight = 0.4;
+  double maxHeight = 0.4;
+  final GlobalKey _listItemKey = GlobalKey();
 
   @override
   void initState() {
@@ -111,27 +114,7 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  // Future<void> fetchBookData() async {
-  //   final Uri url = Uri.parse('http://172.10.7.78/get_all_books');
-
-  //   try {
-  //     final response = await http.get(url);
-
-  //     if (response.statusCode == 200) {
-  //       setState(() {
-  //         books = json.decode(response.body)['books'];
-  //       });
-  //     } else {
-  //       print(
-  //           'Failed to load books. Status Code: ${response.statusCode}, Response: ${response.body}');
-  //       throw Exception('Failed to load books');
-  //     }
-  //   } catch (error) {
-  //     // Handle other errors, such as network errors.
-  //     print('Error during book data fetch: $error');
-  //     throw Exception('Failed to load books');
-  //   }
-  // }
+  void onMarkerTapped() {}
 
   void _getCurrentLocation() async {
     try {
@@ -147,9 +130,19 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  void _animateSheetSize() {
+    final RenderBox renderBox =
+        _listItemKey.currentContext!.findRenderObject() as RenderBox;
+    final listItemHeight = renderBox.size.height;
+
+    setState(() {
+      minHeight = listItemHeight / MediaQuery.of(context).size.height;
+    });
+  }
+
   void _updateMarkers(List<dynamic> books) {
     markers.clear();
-    List<dynamic> updatedBooks = List.from(books); // books 리스트를 변경하지 않도록 복사
+    List<dynamic> updatedBooks = List.from(books);
 
     if (currentPosition != null) {
       markers.add(Marker(
@@ -167,18 +160,20 @@ class _MapPageState extends State<MapPage> {
           double.parse(markerData["longitude"]),
         );
         //일정범위 이내의 마커만 불러옴
-        if (distance <= 1200) {
-          markers.add(Marker(
+        //if (distance <= 1200) {
+        markers.add(
+          Marker(
             markerId: MarkerId(markerData["book_name"]),
             position: LatLng(double.parse(markerData["latitude"]),
                 double.parse(markerData["longitude"])),
             infoWindow: InfoWindow(
               title: markerData["book_name"],
-              snippet: 'Additional Info: ${markerData["placename"]}',
+              snippet: '작가: ${markerData["publisher"]}',
             ),
             onTap: () {},
-          ));
-        }
+          ),
+        );
+        //}
       }
     }
   }
@@ -201,6 +196,8 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> Listbooks = [...books];
+    int? selectedItemIndex;
     LatLng currentLatLng = LatLng(
       currentPosition?.latitude ?? 36.37422,
       currentPosition?.longitude ?? 127.3658,
@@ -231,35 +228,42 @@ class _MapPageState extends State<MapPage> {
             },
           ),
           ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(50.0),
-              topRight: Radius.circular(50.0),
-            ),
             child: DraggableScrollableSheet(
-              initialChildSize: 0.4,
-              minChildSize: 0.4,
-              maxChildSize: 1.0,
+              initialChildSize: minHeight,
+              minChildSize: minHeight,
+              maxChildSize: maxHeight,
               builder:
                   (BuildContext context, ScrollController scrollController) {
                 return ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(50.0),
-                    topRight: Radius.circular(50.0),
-                  ),
                   child: Container(
                     color: Colors.white,
                     child: ListView.builder(
                       controller: scrollController,
-                      itemCount: books.length,
+                      itemCount: Listbooks.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Theme(
                           data: Theme.of(context)
                               .copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             title: ListTile(
-                              title: Text(books[index]["book_name"]),
-                              subtitle: Text(
-                                  "Book Owner: ${books[index]["register_id"]}"),
+                              title: Text(
+                                Listbooks[index]["book_name"],
+                                style: const TextStyle(
+                                  fontSize: 28.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      "Book Owner: ${Listbooks[index]["register_id"]}"),
+                                  Text(
+                                      "Publisher: ${Listbooks[index]["publisher"]}"),
+                                  Text(
+                                      "Published Year: ${Listbooks[index]["published_year"]}"),
+                                ],
+                              ),
                               leading: Container(
                                 width: 40,
                                 height: 40,
@@ -268,8 +272,9 @@ class _MapPageState extends State<MapPage> {
                                 ),
                                 child: Image(
                                   fit: BoxFit.cover,
-                                  image: books[index]['img_url'] != null
-                                      ? NetworkImage(books[index]['img_url'])
+                                  image: Listbooks[index]['img_url'] != null
+                                      ? NetworkImage(
+                                          Listbooks[index]['img_url'])
                                       : const AssetImage(
                                               'assets/placeholder_image.png')
                                           as ImageProvider,
@@ -284,12 +289,26 @@ class _MapPageState extends State<MapPage> {
                                 ),
                               ),
                               onTap: () {
+                                setState(() {
+                                  selectedItemIndex = index;
+                                  // if (index >= 0 &&
+                                  //     index < Listbooks.length &&
+                                  //     selectedItemIndex != null) {
+                                  //   if (minHeight > 0.2 && maxHeight > 0.2) {
+                                  //     minHeight = 0.2;
+                                  //     maxHeight = 0.2;
+                                  //   } else {
+                                  //     minHeight = 0.4;
+                                  //     maxHeight = 0.4;
+                                  //   }
+                                  // }
+                                });
                                 _focusMarkerOnListViewItemClick(
                                   LatLng(
-                                    double.parse(books[index]["latitude"]),
-                                    double.parse(books[index]["longitude"]),
+                                    double.parse(Listbooks[index]["latitude"]),
+                                    double.parse(Listbooks[index]["longitude"]),
                                   ),
-                                  books[index]['book_name'],
+                                  Listbooks[index]['book_name'],
                                   // 'Test'
                                 );
                               },
@@ -310,7 +329,7 @@ class _MapPageState extends State<MapPage> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => ChatPage(
-                                                  bookIndex: books[index]
+                                                  bookIndex: Listbooks[index]
                                                       ['book_index']),
                                             ),
                                           );

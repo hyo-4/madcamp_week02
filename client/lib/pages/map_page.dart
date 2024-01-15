@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'dart:convert';
 import 'package:client/pages/main_page.dart';
@@ -28,7 +29,7 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
   Position? currentPosition;
-  bool isListViewVisible = false;
+  List<dynamic> books = [];
   Set<Marker> markers = {};
   List<Map<String, dynamic>> books = [];
   List<Map<String, dynamic>> dummyMarkerData = [
@@ -71,7 +72,7 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     initializeBooks();
     _checkLocationPermission();
-
+    fetchBookData();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -113,22 +114,46 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  Future<void> fetchBookData() async {
+    final Uri url = Uri.parse('http://172.10.7.78:80/get_all_books');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          books = json.decode(response.body)['books'];
+        });
+      } else {
+        print(
+            'Failed to load books. Status Code: ${response.statusCode}, Response: ${response.body}');
+        throw Exception('Failed to load books');
+      }
+    } catch (error) {
+      // Handle other errors, such as network errors.
+      print('Error during book data fetch: $error');
+      throw Exception('Failed to load books');
+    }
+  }
+
   void _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       setState(() {
         currentPosition = position;
-        _updateMarkers();
         _updateCameraPosition();
+        _updateMarkers(books);
       });
     } catch (e) {
       print("Error: $e");
     }
   }
 
-  void _updateMarkers() {
+  void _updateMarkers(List<dynamic> books) {
     markers.clear();
+    List<dynamic> updatedBooks = List.from(books); // books 리스트를 변경하지 않도록 복사
+
     if (currentPosition != null) {
       markers.add(Marker(
         markerId: const MarkerId("myLocation"),
@@ -158,6 +183,7 @@ class _MapPageState extends State<MapPage> {
             },
           ));
         }
+
       }
     }
   }
@@ -176,18 +202,6 @@ class _MapPageState extends State<MapPage> {
     mapController.animateCamera(
       CameraUpdate.newLatLng(markerPosition),
     );
-
-    // Delay the showInfoWindow call to ensure the camera animation is complete
-    Future.delayed(const Duration(milliseconds: 500), () {
-      mapController.showMarkerInfoWindow(MarkerId(markerId));
-      _toggleListViewVisibility();
-    });
-  }
-
-  void _toggleListViewVisibility() {
-    setState(() {
-      isListViewVisible = !isListViewVisible;
-    });
   }
 
   @override

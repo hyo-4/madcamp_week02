@@ -1,7 +1,9 @@
+import 'package:client/services/user_controller.dart';
 import 'package:client/pages/book_add_page.dart';
 import 'package:client/pages/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:get/get.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
@@ -13,6 +15,8 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
+    final userName = userController.name;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -77,18 +81,21 @@ class _MainPageState extends State<MainPage> {
                   height: 20,
                 ),
                 InfiniteSlider(),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     child: Row(
                       children: [
-                        Icon(Icons.arrow_drop_down_circle_sharp),
-                        SizedBox(width: 10),
-                        Text(
-                          '바로가기 메뉴',
-                          style: TextStyle(fontSize: 20),
-                        ),
+                        userName.isNull
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('$userName 님 환영합니다. '),
+                                ],
+                              )
+                            : const Text('User data not available'),
+                        const SizedBox(width: 10),
                       ],
                     ),
                   ),

@@ -1,19 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:client/pages/main_page.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-class Book {
-  String name;
-  String ownername;
-  double latitude;
-  double longitude;
-
-  Book(this.name, this.ownername, this.latitude, this.longitude);
-}
+import 'package:http/http.dart' as http;
 
 class MapPage extends StatefulWidget {
   const MapPage({Key? key}) : super(key: key);
@@ -25,47 +18,14 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   late GoogleMapController mapController;
   Position? currentPosition;
-  bool isListViewVisible = false;
+  List<dynamic> books = [];
   Set<Marker> markers = {};
-  List<Map<String, dynamic>> dummyMarkerData = [
-    {
-      "name": "book1",
-      "placename": "교수회관",
-      "latitude": 36.3746367,
-      "longitude": 127.3648061,
-      "owner": "책주인이름",
-      "image": "/asset/images/image1.jpg"
-    },
-    {
-      "name": "book2",
-      "placename": "한국원자력안전기술원",
-      "latitude": 36.3746164,
-      "longitude": 127.3689033,
-      "owner": "책주인이름",
-      "image": "/asset/images/image1.jpg"
-    },
-    {
-      "name": "book3",
-      "placename": "카이스트 후문",
-      "latitude": 36.3742223,
-      "longitude": 127.3657778,
-      "owner": "책주인이름",
-      "image": "/asset/images/image1.jpg"
-    },
-    {
-      "name": "book4",
-      "placename": "N5 융합연구동",
-      "latitude": 36.3742222,
-      "longitude": 127.3657778,
-      "owner": "책주인이름",
-      "image": "/asset/images/image1.jpg"
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
     _checkLocationPermission();
+    fetchBookData();
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -80,22 +40,46 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  Future<void> fetchBookData() async {
+    final Uri url = Uri.parse('http://172.10.7.78:80/get_all_books');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        setState(() {
+          books = json.decode(response.body)['books'];
+        });
+      } else {
+        print(
+            'Failed to load books. Status Code: ${response.statusCode}, Response: ${response.body}');
+        throw Exception('Failed to load books');
+      }
+    } catch (error) {
+      // Handle other errors, such as network errors.
+      print('Error during book data fetch: $error');
+      throw Exception('Failed to load books');
+    }
+  }
+
   void _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
       setState(() {
         currentPosition = position;
-        _updateMarkers();
         _updateCameraPosition();
+        _updateMarkers(books);
       });
     } catch (e) {
       print("Error: $e");
     }
   }
 
-  void _updateMarkers() {
+  void _updateMarkers(List<dynamic> books) {
     markers.clear();
+    List<dynamic> updatedBooks = List.from(books); // books 리스트를 변경하지 않도록 복사
+
     if (currentPosition != null) {
       markers.add(Marker(
         markerId: const MarkerId("myLocation"),
@@ -103,27 +87,26 @@ class _MapPageState extends State<MapPage> {
         infoWindow: const InfoWindow(title: "Current Location"),
       ));
 
-      for (var markerData in dummyMarkerData) {
+      for (var book in updatedBooks) {
         double distance = Geolocator.distanceBetween(
           currentPosition!.latitude,
           currentPosition!.longitude,
-          markerData["latitude"],
-          markerData["longitude"],
+          double.parse(book["latitude"]),
+          double.parse(book["longitude"]),
         );
-        //일정범위 이내의 마커만 불러옴
-        if (distance <= 120) {
-          markers.add(Marker(
-            markerId: MarkerId(markerData["name"]),
-            position: LatLng(markerData["latitude"], markerData["longitude"]),
-            infoWindow: InfoWindow(
-              title: markerData["name"],
-              snippet: 'Additional Info: ${markerData["placename"]}',
-            ),
-            onTap: () {
-              _toggleListViewVisibility();
-            },
-          ));
-        }
+
+        markers.add(Marker(
+          markerId: MarkerId(book["book_name"]),
+          position: LatLng(
+            double.parse(book["latitude"]),
+            double.parse(book["longitude"]),
+          ),
+          infoWindow: InfoWindow(
+            title: book["book_name"],
+            snippet: 'Author: ${book["author"]}',
+          ),
+          onTap: () {},
+        ));
       }
     }
   }
@@ -142,18 +125,6 @@ class _MapPageState extends State<MapPage> {
     mapController.animateCamera(
       CameraUpdate.newLatLng(markerPosition),
     );
-
-    // Delay the showInfoWindow call to ensure the camera animation is complete
-    Future.delayed(const Duration(milliseconds: 500), () {
-      mapController.showMarkerInfoWindow(MarkerId(markerId));
-      _toggleListViewVisibility();
-    });
-  }
-
-  void _toggleListViewVisibility() {
-    setState(() {
-      isListViewVisible = !isListViewVisible;
-    });
   }
 
   @override
@@ -207,38 +178,39 @@ class _MapPageState extends State<MapPage> {
                     color: Colors.white,
                     child: ListView.builder(
                       controller: scrollController,
-                      itemCount: dummyMarkerData.length,
+                      itemCount: books.length,
                       itemBuilder: (BuildContext context, int index) {
                         return Theme(
                           data: Theme.of(context)
                               .copyWith(dividerColor: Colors.transparent),
                           child: ExpansionTile(
                             title: ListTile(
-                              title: Text(dummyMarkerData[index]["name"]),
-                              subtitle: Text(
-                                  "Book Owner: ${dummyMarkerData[index]["owner"]}"),
-                              leading: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.rectangle,
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: AssetImage(
-                                        'assets/images/blankimg.png'),
+                                title: Text(books[index]['book_name']),
+                                subtitle: Text(books[index]['author']),
+                                leading: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.rectangle,
+                                    image: DecorationImage(
+                                      fit: BoxFit.cover,
+                                      image: AssetImage(
+                                          'assets/images/blankimg.png'),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              onTap: () {
-                                _focusMarkerOnListViewItemClick(
-                                  LatLng(
-                                    dummyMarkerData[index]["latitude"],
-                                    dummyMarkerData[index]["longitude"],
-                                  ),
-                                  dummyMarkerData[index]['name'],
-                                );
-                              },
-                            ),
+                                onTap: () {
+                                  if (books[index] != null &&
+                                      books[index]['book_name'] != null) {
+                                    _focusMarkerOnListViewItemClick(
+                                      LatLng(
+                                        double.parse(books[index]["latitude"]),
+                                        double.parse(books[index]["longitude"]),
+                                      ),
+                                      books[index]['book_name'],
+                                    );
+                                  }
+                                }),
                             children: <Widget>[
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,

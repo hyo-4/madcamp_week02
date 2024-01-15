@@ -37,6 +37,7 @@ class _BookAddState extends State<BookAdd> {
       });
     }
   }
+
   Future<void> _sendbookdata() async {
     final apiUrl = Uri.parse("http://172.10.7.78:80/savebook");
 
@@ -47,8 +48,7 @@ class _BookAddState extends State<BookAdd> {
     // );
     // LatLng selectedLocation = await Navigator.pop();
     // Check if all required data is available
-    if (
-        _selectedDate != null &&
+    if (_selectedDate != null &&
         _bookNameController.text.isNotEmpty &&
         _authorController.text.isNotEmpty &&
         _publisherController.text.isNotEmpty &&
@@ -71,7 +71,8 @@ class _BookAddState extends State<BookAdd> {
         var request = http.MultipartRequest('POST', apiUrl);
 
         // Add the image file to the request
-        request.files.add(await http.MultipartFile.fromPath('image', _imagePath!));
+        request.files
+            .add(await http.MultipartFile.fromPath('image', _imagePath!));
 
         // Add other form data to the request
         request.fields.addAll(data);
@@ -81,7 +82,8 @@ class _BookAddState extends State<BookAdd> {
           'image',
           imageBytes,
           filename: 'image.jpg', // You can set any filename you prefer
-          contentType: MediaType('image', 'jpg'), // Adjust the content type accordingly
+          contentType:
+              MediaType('image', 'jpg'), // Adjust the content type accordingly
         ));
         // Send the request
         final response = await request.send();
@@ -132,11 +134,11 @@ class _BookAddState extends State<BookAdd> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Color(0xFFEDE9E1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
@@ -155,40 +157,82 @@ class _BookAddState extends State<BookAdd> {
               child: _imagePath != null
                   ? Image.file(
                       File(_imagePath!),
-                      height: 300,
-                      fit: BoxFit.cover,
+                      height: 200,
+                      width: 200,
+                      fit: BoxFit.contain,
                     )
                   : Container(
-                      color: Colors.grey[200],
-                      height: 300,
+                      color: Color(0xFFEDE9E1),
+                      height: 200,
+                      width: 200,
                       child: Center(
-                        child: Text('Tap to pick an image'),
+                        child: Text('탭하여 책 표지 사진 추가하기'),
                       ),
                     ),
             ),
             const SizedBox(height: 16.0),
             TextField(
               controller: _bookNameController,
-              decoration: InputDecoration(labelText: '책 이름'),
+              decoration: InputDecoration(
+                labelText: '책 이름',
+                labelStyle: TextStyle(color: Color(0xff8f826f)),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                ),
+              ),
             ),
             const SizedBox(height: 10.0),
             TextField(
               controller: _authorController,
-              decoration: InputDecoration(labelText: '작가'),
+              decoration: InputDecoration(
+                labelText: '작가',
+                labelStyle: TextStyle(color: Color(0xff8f826f)),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                ),
+              ),
             ),
             const SizedBox(height: 10.0),
             TextField(
               controller: _publisherController,
-              decoration: InputDecoration(labelText: '출판사명'),
+              decoration: InputDecoration(
+                labelText: '출판사명',
+                labelStyle: TextStyle(color: Color(0xff8f826f)),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color(0xff8f826f)),
+                ),
+              ),
             ),
             const SizedBox(height: 10.0),
             ElevatedButton(
               onPressed: () => _selectYear(context),
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xffede9e1), // Background color
+                onPrimary: Colors.black, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Button border radius
+                ),
+              ),
               child: Text(_selectedDate == null
                   ? 'Select Year'
                   : 'Selected Year: ${_selectedDate!.year}'),
             ),
-            const SizedBox(height: 10.0),
+            // const SizedBox(height: 10.0),
             ElevatedButton(
               onPressed: () async {
                 selectedLocation = await Navigator.push(
@@ -203,12 +247,30 @@ class _BookAddState extends State<BookAdd> {
                   // Do something with the selected location
                 }
               },
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xffede9e1), // Background color
+                onPrimary: Colors.black, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Button border radius
+                ),
+              ),
               child: Text(_selectedLocationAddress == null
                   ? 'Pick Location'
                   : 'Selected Location: $_selectedLocationAddress'),
             ),
+            const SizedBox(height: 10.0),
             ElevatedButton(
-              onPressed: () => _sendbookdata(),
+              onPressed: () => {
+                _sendbookdata(),
+                Navigator.pop(context),
+              },
+              style: ElevatedButton.styleFrom(
+                primary: Color(0xffede9e1), // Background color
+                onPrimary: Colors.black, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Button border radius
+                ),
+              ),
               child: Text('책 등록'),
             ),
           ],

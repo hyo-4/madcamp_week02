@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -31,6 +33,12 @@ class _ChatPageState extends State<ChatPage> {
     _initSocket();
   }
 
+  void _displayMessage(String message) {
+    setState(() {
+      _messages.add(message);
+    });
+  }
+
   Future<void> loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -52,9 +60,7 @@ class _ChatPageState extends State<ChatPage> {
 
     _socket.on('message', (data) {
       final receivedMessage = data.toString();
-      setState(() {
-        _messages.add(receivedMessage);
-      });
+      _displayMessage(receivedMessage);
     });
 
     _socket.on('disconnect', (_) {
@@ -108,17 +114,20 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  // 메시지 전송 메서드
   void _sendMessage() {
     if (_messageController.text.isNotEmpty) {
-      _socket.emit('message', {
-        'myid': userId,
-        'yourid': yourId,
-        'content': _messageController.text,
-        'bookid': bookid,
-        'register_id': userId,
-      });
-      _messageController.clear();
+      if (mounted) {
+        setState(() {
+          _socket.emit('message', {
+            'myid': userId,
+            'yourid': yourId,
+            'content': _messageController.text,
+            'bookid': bookid,
+            'register_id': userId,
+          });
+          _messageController.clear();
+        });
+      }
     }
   }
 

@@ -80,8 +80,8 @@ class _ChatListState extends State<ChatList> {
               );
             },
             child: ListTile(
-              title: Text('Your ID: ${chatList[index]['yourid']}'),
-              subtitle: Text('Book ID: ${chatList[index]['bookid']}'),
+              title: Text('User: ${chatList[index]['yourid']}'),
+              subtitle: Text('책: ${chatList[index]['bookid']}'),
               // Add more widgets or customize as needed
             ),
           );

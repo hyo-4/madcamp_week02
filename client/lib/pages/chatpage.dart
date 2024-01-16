@@ -60,7 +60,9 @@ class _ChatPageState extends State<ChatPage> {
 
     _socket.on('message', (data) {
       final receivedMessage = data.toString();
-      _displayMessage(receivedMessage);
+      setState(() {
+        _messages.add(receivedMessage);
+      });
     });
 
     _socket.on('disconnect', (_) {

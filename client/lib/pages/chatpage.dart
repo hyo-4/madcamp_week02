@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:client/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -21,7 +22,8 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final List<String> _messages = [];
-  late io.Socket _socket;
+  //late io.Socket _socket;
+  late SocketService _socketService;
   String userId = '';
   String yourId = '';
   late int bookid;
@@ -29,8 +31,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    _socketService = SocketService(onMessageReceived: _displayMessage);
     loadUserId();
-    _initSocket();
+    _socketService.initSocket();
   }
 
   void _displayMessage(String message) {
@@ -46,28 +49,6 @@ class _ChatPageState extends State<ChatPage> {
       yourId = widget.yourId;
       bookid = widget.bookIndex;
     });
-  }
-
-  void _initSocket() {
-    _socket = io.io('ws://172.10.7.78', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
-
-    _socket.on('connect', (_) {
-      print('Socket connected');
-    });
-
-    _socket.on('message', (data) {
-      final receivedMessage = data.toString();
-      _displayMessage(receivedMessage);
-    });
-
-    _socket.on('disconnect', (_) {
-      print('Socket disconnected');
-    });
-
-    _socket.connect();
   }
 
   @override
@@ -118,13 +99,12 @@ class _ChatPageState extends State<ChatPage> {
     if (_messageController.text.isNotEmpty) {
       if (mounted) {
         setState(() {
-          _socket.emit('message', {
-            'myid': userId,
-            'yourid': yourId,
-            'content': _messageController.text,
-            'bookid': bookid,
-            'register_id': userId,
-          });
+          _socketService.sendMessage(
+            userId: userId,
+            yourId: yourId,
+            message: _messageController.text,
+            bookId: bookid,
+          );
           _messageController.clear();
         });
       }
@@ -133,7 +113,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    _socket.disconnect();
+    _socketService.disconnectSocket(); // Disconnect the socket
     super.dispose();
   }
 }

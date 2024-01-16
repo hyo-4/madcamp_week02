@@ -329,8 +329,11 @@ class _MapPageState extends State<MapPage> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => ChatPage(
-                                                  bookIndex: Listbooks[index]
-                                                      ['book_index']),
+                                                bookIndex: Listbooks[index]
+                                                    ['book_index'],
+                                                yourId: Listbooks[index]
+                                                    ['register_id'],
+                                              ),
                                             ),
                                           );
                                         },

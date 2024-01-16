@@ -1,6 +1,7 @@
 import 'package:client/pages/book_add_page.dart';
 import 'package:client/pages/book_search_page.dart';
 import 'package:client/pages/map_page.dart';
+import 'package:client/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,13 +18,17 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     loadUserId(); // Load the user ID when the widget is initialized
+
   }
+
   Future<void> loadUserId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userId = prefs.getString('user_id') ?? ''; // Assign the user ID or an empty string if it's not available
+      userId = prefs.getString('user_id') ??
+          ''; // Assign the user ID or an empty string if it's not available
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +74,12 @@ class _MainPageState extends State<MainPage> {
                 child: InkWell(
                   onTap: () {
                     // 프로필 아이콘 클릭 시 수행할 작업 추가
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyprofilePage(),
+                      ),
+                    );
                   },
                   child: Ink.image(
                     image: const AssetImage('assets/images/profile.png'),

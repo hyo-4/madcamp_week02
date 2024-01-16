@@ -4,6 +4,7 @@ import 'package:client/pages/chat_list_page.dart';
 import 'package:client/pages/map_page.dart';
 import 'package:client/pages/my_page.dart';
 import 'package:flutter/material.dart';
+import 'package:client/pages/profile_page.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class NewMainPage extends StatefulWidget {
@@ -86,7 +87,7 @@ class _NewMainPageState extends State<NewMainPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MyPage(),
+                            builder: (context) => const MyprofilePage(),
                           ),
                         );
                       },

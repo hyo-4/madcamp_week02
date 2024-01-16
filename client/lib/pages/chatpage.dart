@@ -1,53 +1,74 @@
 import 'package:flutter/material.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class ChatPage extends StatefulWidget {
   final int bookIndex;
+  final String yourId;
 
-  const ChatPage({required this.bookIndex, Key? key}) : super(key: key);
+  const ChatPage({
+    required this.bookIndex,
+    required this.yourId,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _ChatPageState createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
-  TextEditingController _messageController = TextEditingController();
-  List<String> _messages = [];
-  late final WebSocketChannel channel;
-  // late final channel = IOWebSocketChannel.connect('ws://172.10.7.78:80');
+  final TextEditingController _messageController = TextEditingController();
+  final List<String> _messages = [];
+  late io.Socket _socket;
+  String userId = '';
+  String yourId = '';
+  late int bookid;
 
   @override
   void initState() {
     super.initState();
-    // channel = IOWebSocketChannel.connect('ws://172.10.7.78:80');
-    channel = WebSocketChannel.connect(
-      Uri.parse('ws://172.10.7.78:80'),
-    );
+    loadUserId();
+    _initSocket();
+  }
 
-    channel.stream.listen((message) {
-      setState(() {
-        _messages.add(message);
-      });
+  Future<void> loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ?? '';
+      yourId = widget.yourId;
+      bookid = widget.bookIndex;
     });
   }
 
-  void _sendMessage(String message) {
-
-    print('Received message: $message');
-    channel.sink.add(message);
-    setState(() {
-      _messages.add(message);
-      _messageController.clear();
+  void _initSocket() {
+    _socket = io.io('ws://172.10.7.78', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
     });
 
+    _socket.on('connect', (_) {
+      print('Socket connected');
+    });
+
+    _socket.on('message', (data) {
+      final receivedMessage = data.toString();
+      setState(() {
+        _messages.add(receivedMessage);
+      });
+    });
+
+    _socket.on('disconnect', (_) {
+      print('Socket disconnected');
+    });
+
+    _socket.connect();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chatting App'),
+        title: const Text('Chatting App'),
       ),
       body: Column(
         children: [
@@ -68,17 +89,15 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Type a message...',
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: const Icon(Icons.send),
                   onPressed: () {
-                    if (_messageController.text.isNotEmpty) {
-                      _sendMessage(_messageController.text);
-                    }
+                    _sendMessage();
                   },
                 ),
               ],
@@ -89,9 +108,23 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  // 메시지 전송 메서드
+  void _sendMessage() {
+    if (_messageController.text.isNotEmpty) {
+      _socket.emit('message', {
+        'myid': userId,
+        'yourid': yourId,
+        'content': _messageController.text,
+        'bookid': bookid,
+        'register_id': userId,
+      });
+      _messageController.clear();
+    }
+  }
+
   @override
   void dispose() {
-    channel.sink.close();
+    _socket.disconnect();
     super.dispose();
   }
 }

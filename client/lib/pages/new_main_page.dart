@@ -1,5 +1,6 @@
 import 'package:client/pages/book_add_page.dart';
 import 'package:client/pages/book_search_page.dart';
+import 'package:client/pages/chat_list_page.dart';
 import 'package:client/pages/map_page.dart';
 import 'package:client/pages/my_page.dart';
 import 'package:flutter/material.dart';
@@ -51,15 +52,20 @@ class _NewMainPageState extends State<NewMainPage> {
               Padding(
                 padding: const EdgeInsets.only(right: 20.0),
                 child: InkWell(
-                  onTap: () {
-                    // 채팅 아이콘 클릭 시 수행할 작업 추가
-                  },
+                  onTap: () {},
                   child: Ink.image(
                     image: const AssetImage('assets/images/chat.png'),
                     width: 38,
                     height: 38,
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChatList(),
+                          ),
+                        );
+                      },
                       icon: const SizedBox.shrink(),
                     ),
                   ),

@@ -81,7 +81,6 @@ class _LoginPageState extends State<LoginPage> {
         DateTime currentTime = DateTime.now();
         String formattedTime = currentTime.toLocal().toString();
 
-        // Save the current date and time to 'lastlogedintime' in SharedPreferences
         pref.setString('lastlogedintime', formattedTime);
 
         Navigator.push(

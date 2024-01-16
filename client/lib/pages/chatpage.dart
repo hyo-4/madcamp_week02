@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:client/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
   final int bookIndex;
@@ -21,25 +23,62 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _messages = [];
+  final List _messages = [];
   //late io.Socket _socket;
   late SocketService _socketService;
   String userId = '';
   String yourId = '';
-  late int bookid;
+  int? bookid;
+  List<Map<String, dynamic>> contentList = [];
+
+  Future<void> getchat() async {
+    const String url = 'http://172.10.7.78/get_chat_content';
+
+    final Map<String, dynamic> data = {
+      'myid': 'qq',
+      'yourid': 'ww',
+      'bookid': 19
+    };
+    print('Sending data: $data');
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: jsonEncode(data),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<dynamic> contentList = data['content_list'];
+
+        if (mounted) {
+          setState(() {
+            _messages.addAll(contentList);
+          });
+        }
+      } else {
+        throw Exception('Failed to load chat list');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    getchat();
     _socketService = SocketService(onMessageReceived: _displayMessage);
     loadUserId();
     _socketService.initSocket();
   }
 
   void _displayMessage(String message) {
-    setState(() {
-      _messages.add(message);
-    });
+    if (mounted) {
+      setState(() {
+        _messages.add(message);
+      });
+    }
   }
 
   Future<void> loadUserId() async {
@@ -63,8 +102,10 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
+                String jsonMessage = _messages[index];
+
                 return ListTile(
-                  title: Text(_messages[index]),
+                  title: Text(jsonMessage),
                 );
               },
             ),
@@ -96,18 +137,16 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _socketService.sendMessage(
-            userId: userId,
-            yourId: yourId,
-            message: _messageController.text,
-            bookId: bookid,
-          );
-          _messageController.clear();
-        });
-      }
+    if (_messageController.text.isNotEmpty && mounted) {
+      setState(() {
+        _socketService.sendMessage(
+          userId: userId,
+          yourId: yourId,
+          message: _messageController.text,
+          bookId: bookid!,
+        );
+        _messageController.clear();
+      });
     }
   }
 

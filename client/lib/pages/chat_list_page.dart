@@ -74,7 +74,7 @@ class _ChatListState extends State<ChatList> {
                 MaterialPageRoute(
                   builder: (context) => ChatPage(
                     bookIndex: chatList[index]['bookid'],
-                    yourId: userId,
+                    yourId: chatList[index]['yourid'],
                   ),
                 ),
               );

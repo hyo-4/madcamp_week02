@@ -39,7 +39,7 @@ class SocketService {
       'yourid': yourId,
       'content': message,
       'bookid': bookId,
-      'register_id': userId,
+      'register_id': yourId,
     });
   }
 

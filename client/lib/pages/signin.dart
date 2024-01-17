@@ -17,12 +17,12 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _userIdController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _userIdController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   Future<void> sendData() async {
-    final String url =
+    const String url =
         'http://172.10.7.78:80/signin'; // Replace with your Flask server URL
 
     final Map<String, dynamic> data = {
@@ -41,6 +41,7 @@ class _SignInState extends State<SignIn> {
       if (response.statusCode == 200) {
         print('Data sent successfully');
         print('Response: ${response.body}');
+        Navigator.pop(context);
       } else {
         print('Failed to send data. Status code: ${response.statusCode}');
       }
@@ -67,21 +68,20 @@ class _SignInState extends State<SignIn> {
       // appBar: AppBar(
       //   title: Text('Login Page'),
       // ),
-      backgroundColor: Color(0xFFF0E3D0),
+      backgroundColor: const Color(0xFFF0E3D0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child:
-          Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            SizedBox(height: 100),
+            const SizedBox(height: 100),
             Image.asset(
               'assets/logo_vertical.png',
               width: 100,
               height: 100,
             ),
-            SizedBox(height: 16.0),
-            Text(
+            const SizedBox(height: 16.0),
+            const Text(
               '바로북에 오신걸 환영합니다!',
               style: TextStyle(
                 color: Color(0xFF6D5736),
@@ -91,24 +91,24 @@ class _SignInState extends State<SignIn> {
             ),
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
             const SizedBox(height: 16.0),
             TextField(
               controller: _userIdController,
-              decoration: InputDecoration(labelText: 'User ID'),
+              decoration: const InputDecoration(labelText: 'User ID'),
             ),
             const SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
             const SizedBox(height: 24.0),
             ElevatedButton(
               onPressed: sendData,
               style: ElevatedButton.styleFrom(
-                fixedSize: Size(200,50),
+                fixedSize: const Size(200, 50),
               ),
               child: const Text(
                 'Sign In',
@@ -125,8 +125,8 @@ class _SignInState extends State<SignIn> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: (){
+          icon: const Icon(Icons.close),
+          onPressed: () {
             Navigator.pop(context);
           },
         ),

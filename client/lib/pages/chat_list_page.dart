@@ -19,7 +19,7 @@ class _ChatListState extends State<ChatList> {
   @override
   void initState() {
     super.initState();
-    loadUserId();
+    // loadUserId();
     getlist();
   }
 
@@ -33,9 +33,12 @@ class _ChatListState extends State<ChatList> {
 
   Future<void> getlist() async {
     String url = 'http://172.10.7.78/get_chat_list';
-
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ?? 'qq';
+    });
     final Map<String, dynamic> data = {
-      'myid': 'qq', //아거 userid로 고쳐야함
+      'myid': userId, //아거 userid로 고쳐야함
     };
     print('Sending data: $data');
     try {
@@ -49,6 +52,7 @@ class _ChatListState extends State<ChatList> {
         final data = json.decode(response.body);
         setState(() {
           chatList = List<Map<String, dynamic>>.from(data['chat_list']);
+          print(chatList);
         });
       } else {
         throw Exception('Failed to load chat list');

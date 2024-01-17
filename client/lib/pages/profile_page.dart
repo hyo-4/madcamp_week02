@@ -159,22 +159,6 @@ class _MyprofileState extends State<MyprofilePage> {
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Text(
-                          '읽은 책',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        Text(
-                          // '$읽은책Number',
-                          'tmp read num',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
               SizedBox(height: 16),

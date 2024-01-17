@@ -253,8 +253,9 @@ class _MapPageState extends State<MapPage> {
                     color: Colors.white,
                     child: ListView.builder(
                       shrinkWrap: true, // Important to set shrinkWrap to true
-                      physics:
-                      NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
+                      controller: scrollController,
+                      // physics:
+                      // NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
                       itemCount: Listbooks.length,
                       itemBuilder: (context, index) {
                         if (Listbooks[index]['book_status'] == 'available') {

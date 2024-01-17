@@ -32,7 +32,7 @@ class _ChatListState extends State<ChatList> {
   }
 
   Future<void> getlist() async {
-    const String url = 'http://172.10.7.78/get_chat_list';
+    String url = 'http://172.10.7.78/get_chat_list';
 
     final Map<String, dynamic> data = {
       'myid': 'qq', //아거 userid로 고쳐야함

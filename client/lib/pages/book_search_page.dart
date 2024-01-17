@@ -29,22 +29,30 @@ class BookSearchScreen extends StatefulWidget {
 
 class _BookSearchScreenState extends State<BookSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> searchbooks = [];
   List<Book> _searchResults = [];
   Timer? _debounce;
+  void initState() {
+    super.initState();
+    // loadUserId();// Load the user ID when the widget is initialized
+  }
 
   void _searchBooks(String keyword) async {
     final response = await http
         .get(Uri.parse('http://172.10.7.78/search_books?keyword=$keyword'));
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      List<Book> results =
-          List<Book>.from(data['books'].map((book) => Book.fromJson(book)));
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
 
+      // Access the 'books' key from the response and convert it to List<Map<String, dynamic>>
+      final List<dynamic> booksData = responseData['books'];
+      // print(booksData);
+      // Convert the data to the desired format (List<Map<String, dynamic>>)
       setState(() {
-        _searchResults = results;
+        searchbooks = List<Map<String, dynamic>>.from(booksData);
+        print(searchbooks);
       });
-    } else {
+    }else {
       // Handle error
       print('Error: ${response.statusCode}');
     }
@@ -59,6 +67,7 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> Listbooks = [...searchbooks];
     return Scaffold(
       appBar: AppBar(
         title: const Text('책 검색하기'),
@@ -96,21 +105,182 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _searchResults.length,
+              shrinkWrap: true, // Important to set shrinkWrap to true
+              physics:
+              NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
+              itemCount: Listbooks.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(_searchResults[index].bookName),
-                  subtitle: Text(_searchResults[index].author),
-                  leading: SizedBox(
-                    width: 80.0, // Set the width as per your requirement
-                    height: 80.0, // Set the height as per your requirement
-                    child: Image.network(
-                      _searchResults[index].imgUrl,
-                      fit: BoxFit.scaleDown,
+                if (Listbooks[index]['book_status'] == 'available') {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          12), // Adjust the border radius as needed
+                      color: Color(0xffede9e1),
                     ),
-                  ),
-                  // Add more fields as needed
-                );
+                    child: ListTile(
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
+                      ),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '대여 가능',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Container(
+                          margin: EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                              ),
+                            ],
+                          )),
+                      // Add more details or actions if needed
+                    ),
+                  );
+                } else if (Listbooks[index]['book_status'] == 'reading') {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          12), // Adjust the border radius as needed
+                      color: Color(0xffede9e1),
+                    ),
+                    child: ListTile(
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
+                      ),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '대여중',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Container(
+                          margin: EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                              ),
+                            ],
+                          )
+                        // Add more details or actions if needed
+                      ),
+                    ),
+                  );
+                } else if (Listbooks[index]['book_status'] == 'unavailable') {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                          12), // Adjust the border radius as needed
+                      color: Color(0xffede9e1),
+                    ),
+                    child: ListTile(
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
+                      ),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '대여 불가',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: Container(
+                          margin: EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                              ),
+                            ],
+                          )),
+                      // Add more details or actions if needed
+                    ),
+                  );
+                }
               },
             ),
           ),

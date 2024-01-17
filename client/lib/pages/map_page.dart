@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'chatpage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Book {
   String name;
@@ -26,6 +27,7 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  String userId = '';
   late GoogleMapController mapController;
   Position? currentPosition;
   List<Map<String, dynamic>> books = [];
@@ -72,17 +74,29 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _checkLocationPermission();
+    // loadUserId();
     getallbooks();
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
-
+  Future<void> loadUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ??
+          ''; // Assign the user ID or an empty string if it's not available
+    });
+  }
   Future<void> getallbooks() async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        userId = prefs.getString('user_id') ??
+            ''; // Assign the user ID or an empty string if it's not available
+      });
       final response =
-          await http.get(Uri.parse('http://172.10.7.78/get_all_books'));
+          await http.get(Uri.parse('http://172.10.7.78/get_others_books?user_id=$userId'));
 
       if (response.statusCode == 200) {
         // Parse the JSON response

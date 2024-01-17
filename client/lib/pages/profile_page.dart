@@ -13,11 +13,15 @@ class MyprofilePage extends StatefulWidget {
 class _MyprofileState extends State<MyprofilePage> {
   String userId = ''; // Initialize with an empty string
   List<Map<String, dynamic>> mybooks = [];
+  List<GlobalKey> buttonKeys = [];
   @override
   void initState() {
     super.initState();
+
     // loadUserId();
-    getmybooks(); // Load the user ID when the widget is initialized
+    getmybooks();
+
+    // Load the user ID when the widget is initialized
   }
 
   Future<void> loadUserId() async {
@@ -80,6 +84,7 @@ class _MyprofileState extends State<MyprofilePage> {
         // Convert the data to the desired format (List<Map<String, dynamic>>)
         setState(() {
           mybooks = List<Map<String, dynamic>>.from(booksData);
+          buttonKeys = List.generate(mybooks.length, (index) => GlobalKey());
           print(mybooks);
         });
       } else {
@@ -241,6 +246,20 @@ class _MyprofileState extends State<MyprofilePage> {
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  key: buttonKeys[index],
+                                  onPressed: () {
+                                    _showStatusMenu(context, index, buttonKeys[index]);
+                                  },
+                                  child: Text('상태 변경'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -298,6 +317,20 @@ class _MyprofileState extends State<MyprofilePage> {
                                     );
                                   },
                                   child: Text('장소 보기'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  key: buttonKeys[index],
+                                  onPressed: () {
+                                    _showStatusMenu(context, index, buttonKeys[index]);
+                                  },
+                                  child: Text('상태 변경'),
                                   style: ElevatedButton.styleFrom(
                                     primary: Color(0xffede9e1), // Change button color
                                     onPrimary: Colors.black, // Change text color
@@ -368,6 +401,20 @@ class _MyprofileState extends State<MyprofilePage> {
                                   ),
                                 ),
                               ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  key: buttonKeys[index],
+                                  onPressed: () {
+                                    _showStatusMenu(context, index, buttonKeys[index]);
+                                  },
+                                  child: Text('상태 변경'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -381,5 +428,86 @@ class _MyprofileState extends State<MyprofilePage> {
         ),
       ),
     );
+  }
+  void _showStatusMenu(BuildContext context, int index,GlobalKey buttonKey) {
+    final RenderBox renderBox = buttonKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final List<String> statusOptions = ['대여 가능', '대여중', '대여 불가'];
+
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy + renderBox.size.height,
+        position.dx + renderBox.size.width,
+        position.dy + renderBox.size.height + 10.0, // You can adjust the vertical offset
+      ),
+      items: statusOptions.map((String status) {
+        return PopupMenuItem<String>(
+          child: Text(status),
+          value: status,
+        );
+      }).toList(),
+    ).then((String? value) {
+      if (value != null) {
+        setState(() {
+          updateBookStatus(index, value);
+          // _selectedStatus = value;
+          // Perform the necessary actions or updates with the selected status
+        });
+      }
+    });
+  }
+  void updateBookStatus(int index, String newStatus) async{
+    // Update the status of the book in your data (mybooks) and send a request to update it on the server
+    String tmpStatus = '';
+    if(newStatus == "대여 가능"){
+      tmpStatus = 'available';
+    }
+    else if(newStatus == "대여중"){
+      tmpStatus = 'reading';
+    }
+    else if(newStatus == "대여 불가"){
+      tmpStatus = 'unavailable';
+    }
+    // For example, assuming mybooks is a List<Map<String, dynamic>>:
+    setState(() {
+      mybooks[index]['book_status'] = tmpStatus;
+    });
+    print(mybooks[index]['book_index']);
+
+    // Now you can send a request to your server to update the status
+    await sendUpdateStatusRequest(mybooks[index]['book_index'], tmpStatus);
+    await getmybooks();
+  }
+
+  Future<void> sendUpdateStatusRequest(int bookId, String tmpStatus) async {
+    try {
+      // You should implement your logic to send a request to update the status on the server
+      // Use the bookId and newStatus in the request
+      // For example, using http package:
+      print("bookiD = $bookId");
+      final response = await http.post(
+        Uri.parse('http://172.10.7.78/update_book_status'),
+        headers: {
+          'Content-Type': 'application/json', // Add this line to specify JSON content type
+        },
+        body: jsonEncode({
+          'book_id': bookId,
+          'new_status': tmpStatus,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success
+        print('Status updated successfully');
+      } else {
+        // Handle error
+        print('Failed to update status. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Handle network or parsing errors
+      print('Error: $e');
+    }
   }
 }

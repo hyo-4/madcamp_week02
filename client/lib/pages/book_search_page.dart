@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'chatpage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -203,14 +204,17 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // Handle 1:1 채팅하기 button press
-                                  // Add your logic to open the chat page
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ChatPage(bookIndex: index),
-                                  //   ),
-                                  // );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                        bookIndex: Listbooks[index]
+                                        ['book_index'],
+                                        yourId: Listbooks[index]
+                                        ['register_id'],
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Text('1:1 채팅하기'),
                                 style: ElevatedButton.styleFrom(
@@ -286,14 +290,17 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // Handle 1:1 채팅하기 button press
-                                  // Add your logic to open the chat page
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ChatPage(bookIndex: index),
-                                  //   ),
-                                  // );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                        bookIndex: Listbooks[index]
+                                        ['book_index'],
+                                        yourId: Listbooks[index]
+                                        ['register_id'],
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Text('1:1 채팅하기'),
                                 style: ElevatedButton.styleFrom(
@@ -370,14 +377,17 @@ class _BookSearchScreenState extends State<BookSearchScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  // Handle 1:1 채팅하기 button press
-                                  // Add your logic to open the chat page
-                                  // Navigator.push(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => ChatPage(bookIndex: index),
-                                  //   ),
-                                  // );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                        bookIndex: Listbooks[index]
+                                        ['book_index'],
+                                        yourId: Listbooks[index]
+                                        ['register_id'],
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Text('1:1 채팅하기'),
                                 style: ElevatedButton.styleFrom(

@@ -19,7 +19,7 @@ class SocketService {
     });
 
     _socket.on('message', (data) {
-      final receivedMessage = data.toString();
+      final receivedMessage = data["content"].toString();
       onMessageReceived(receivedMessage);
     });
 

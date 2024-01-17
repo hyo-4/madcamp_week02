@@ -24,12 +24,15 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final List _messages = [];
+  String roomid = "";
+  bool me = false;
   //late io.Socket _socket;
   late SocketService _socketService;
   String yourid = '';
   String userId = '';
   int? bookid;
   List sendList = [];
+  final List messageId = [];
 
   Future<void> getchat() async {
     const String url = 'http://172.10.7.78/get_chat_content';
@@ -39,12 +42,16 @@ class _ChatPageState extends State<ChatPage> {
       userId = prefs.getString('user_id') ?? 'qq';
       yourid = widget.yourId;
       bookid = widget.bookIndex;
+
+      if (userId.compareTo(yourid) > 0) {
+        roomid = '$bookid|$yourid|$userId';
+      } else {
+        roomid = '$bookid|$userId|$yourid';
+      }
     });
 
     final Map<String, dynamic> data = {
-      'myid': userId,
-      'yourid': yourid,
-      'bookid': bookid
+      'chatroom_id': roomid,
     };
 
     try {
@@ -61,10 +68,12 @@ class _ChatPageState extends State<ChatPage> {
         List contentList = data['content_list'];
         List contentValues =
             contentList.map((item) => item['content']).toList();
+        List contentValues2 = contentList.map((item) => item['myid']).toList();
 
         if (mounted) {
           setState(() {
             _messages.addAll(contentValues);
+            messageId.addAll(contentValues2);
           });
         }
       } else {
@@ -88,9 +97,12 @@ class _ChatPageState extends State<ChatPage> {
     if (mounted) {
       setState(() {
         _messages.add(message);
-        // Map<String, dynamic> messageMap = json.decode(message);
-        // String myId = messageMap["myid"];
-        // print("Received message from $myId");
+        if (me) {
+          messageId.add(userId);
+        } else {
+          messageId.add(yourid);
+        }
+        me = false;
       });
     }
   }
@@ -108,20 +120,50 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chatting App'),
+        title: Text(yourid.toString()),
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(_messages[index]),
-                );
-              },
-            ),
-          ),
+              child: ListView.builder(
+            itemCount: _messages.length,
+            itemBuilder: (context, index) {
+              bool isCurrentUser =
+                  messageId[index] == userId; // 현재 사용자의 메시지 여부 확인
+
+              return Container(
+                alignment: isCurrentUser
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  color: isCurrentUser
+                      ? const Color(0xffede9e1)
+                      : const Color.fromARGB(255, 255, 238, 205),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    height: 80,
+                    padding: const EdgeInsets.all(8),
+                    child: ListTile(
+                      title: Text(
+                        _messages[index],
+                        style: const TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      subtitle: Text(
+                        messageId[index],
+                        style: const TextStyle(
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          )),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -151,6 +193,7 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() {
     if (_messageController.text.isNotEmpty && mounted) {
       setState(() {
+        me = true;
         _socketService.sendMessage(
           userId: userId,
           yourId: yourid,

@@ -29,16 +29,16 @@ class _ChatPageState extends State<ChatPage> {
   String userId = '';
   String yourId = '';
   int? bookid;
-  List<Map<String, dynamic>> contentList = [];
+  List<Map<String, dynamic>> contentList2 = [];
 
   Future<void> getchat() async {
     const String url = 'http://172.10.7.78/get_chat_content';
 
     final Map<String, dynamic> data = {
       'myid': 'qq',
-      'yourid': 'ww',
-      'bookid': 19
-    };
+      'yourid': 'sh',
+      'bookid': 28
+    }; //지정된 user말고 변수 넣어서 여러명과 채팅방 구현하기
     print('Sending data: $data');
     try {
       final response = await http.post(
@@ -94,7 +94,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chatting App'),
+        title: Text(yourId),
       ),
       body: Column(
         children: [
@@ -102,10 +102,11 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                String jsonMessage = _messages[index];
+                Map<String, dynamic> message = _messages[index];
 
                 return ListTile(
-                  title: Text(jsonMessage),
+                  title: Text(message['myid']),
+                  subtitle: Text(message['content']),
                 );
               },
             ),

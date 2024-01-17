@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService {
@@ -17,7 +19,7 @@ class SocketService {
     });
 
     _socket.on('message', (data) {
-      final receivedMessage = data.toString();
+      final receivedMessage = data;
       onMessageReceived(receivedMessage);
     });
 

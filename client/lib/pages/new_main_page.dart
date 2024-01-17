@@ -35,190 +35,197 @@ class _NewMainPageState extends State<NewMainPage> {
           ''; // Assign the user ID or an empty string if it's not available
     });
   }
+
   @override
-  void initState(){
+  void initState() {
     loadUserId();
   }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFEEE9E0),
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 100.0,
-            pinned: true,
-            backgroundColor: const Color(0xFFEEE9E0), // AppBar 색상
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                child: Row(
-                  children: [
-                    Image.asset(
-                      "assets/images/logo.png",
-                      width: 210,
-                      fit: BoxFit.cover,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.only(right: 20.0),
-                child: InkWell(
-                  onTap: () {},
-                  child: Ink.image(
-                    image: const AssetImage('assets/images/chat.png'),
-                    width: 38,
-                    height: 38,
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ChatList(),
-                          ),
-                        );
-                      },
-                      icon: const SizedBox.shrink(),
-                    ),
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFEEE9E0),
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: 100.0,
+              pinned: true,
+              backgroundColor: const Color(0xFFEEE9E0), // AppBar 색상
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        "assets/images/logo.png",
+                        width: 210,
+                        fit: BoxFit.cover,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16.0), // 오른쪽 여백을 조절합니다
-                child: InkWell(
-                  onTap: () {
-                    // 프로필 아이콘 클릭 시 수행할 작업 추가
-                  },
-                  child: Ink.image(
-                    image: const AssetImage('assets/images/profile.png'),
-                    width: 38,
-                    height: 38,
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MyprofilePage(),
-                          ),
-                        );
-                      },
-                      icon: const SizedBox.shrink(),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 20.0),
+                  child: InkWell(
+                    onTap: () {},
+                    child: Ink.image(
+                      image: const AssetImage('assets/images/chat.png'),
+                      width: 38,
+                      height: 38,
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChatList(),
+                            ),
+                          );
+                        },
+                        icon: const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                const SizedBox(
-                  height: 20,
-                ),
-                const Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                    ),
-                    Text(
-                      '이 주 베스트',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                InfiniteSlider(),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '$user_id 님 환영합니다. ',
-                              style: TextStyle(
-                                fontSize: 22,
-                              ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0), // 오른쪽 여백을 조절합니다
+                  child: InkWell(
+                    onTap: () {
+                      // 프로필 아이콘 클릭 시 수행할 작업 추가
+                    },
+                    child: Ink.image(
+                      image: const AssetImage('assets/images/profile.png'),
+                      width: 38,
+                      height: 38,
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyprofilePage(),
                             ),
-                          ],
-                        ),
-                        SizedBox(width: 10),
-                      ],
+                          );
+                        },
+                        icon: const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MapPage(),
-                            ),
-                          );
-                        },
-                        child: const RoundedContainerWithBackground(
-                          backgroundImage:
-                              'assets/images/nearby_books_background.jpg',
-                          text: '주변 책 보기',
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BookAdd(),
-                            ),
-                          );
-                        },
-                        child: const RoundedContainerWithBackground(
-                          backgroundImage:
-                              'assets/images/register_books_background.jpg',
-                          text: '책 등록하기',
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BookSearchScreen(),
-                            ),
-                          );
-                        },
-                        child: const RoundedContainerWithBackground(
-                          backgroundImage:
-                              'assets/images/search_books_background.jpg',
-                          text: '책 검색',
-                        ),
-                      ),
-                    ),
-                  ],
-                )
               ],
             ),
-          )
-        ],
+            SliverList(
+              delegate: SliverChildListDelegate(
+                [
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        '이 주 베스트',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  InfiniteSlider(),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$user_id 님 환영합니다. ',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MapPage(),
+                              ),
+                            );
+                          },
+                          child: const RoundedContainerWithBackground(
+                            backgroundImage:
+                                'assets/images/nearby_books_background.jpg',
+                            text: '주변 책 보기',
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const BookAdd(),
+                              ),
+                            );
+                          },
+                          child: const RoundedContainerWithBackground(
+                            backgroundImage:
+                                'assets/images/register_books_background.jpg',
+                            text: '책 등록하기',
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const BookSearchScreen(),
+                              ),
+                            );
+                          },
+                          child: const RoundedContainerWithBackground(
+                            backgroundImage:
+                                'assets/images/search_books_background.jpg',
+                            text: '책 검색',
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

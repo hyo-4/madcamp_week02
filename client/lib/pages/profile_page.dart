@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MyprofilePage extends StatefulWidget {
   const MyprofilePage({Key? key}) : super(key: key);
@@ -26,6 +27,38 @@ class _MyprofileState extends State<MyprofilePage> {
           ''; // Assign the user ID or an empty string if it's not available
     });
   }
+  Future<void> _showMapDialog(double latitude, double longitude) async {
+    print('showdialog');
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: Container(
+            height: 400, // Set your desired height
+            width: 400, // Set your desired width
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(latitude, longitude),
+                zoom: 13.0,
+              ),
+              markers: {
+                Marker(
+                  markerId: MarkerId('markerId'),
+                  position: LatLng(latitude, longitude),
+                  icon: BitmapDescriptor.defaultMarker,
+                ),
+              },
+            ),
+          ),
+          backgroundColor: Colors.blue, // Set your desired background color
+        );
+      },
+    );
+  }
+
 
   Future<void> getmybooks() async {
     try {
@@ -66,6 +99,7 @@ class _MyprofileState extends State<MyprofilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('My Profile'),
+        backgroundColor: const Color(0xFFEEE9E0),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -89,7 +123,13 @@ class _MyprofileState extends State<MyprofilePage> {
                   ElevatedButton(
                     onPressed: () {
                       // Implement logout logic
+                      Navigator.of(context).pop(); // Pop once to close the current screen
+                      Navigator.of(context).pop();
                     },
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.red, // Change button color
+                      onPrimary: Colors.white, // Change text color
+                    ),
                     child: Text('Logout'),
                   ),
                 ],
@@ -144,174 +184,194 @@ class _MyprofileState extends State<MyprofilePage> {
                 itemCount: Listbooks.length,
                 itemBuilder: (context, index) {
                   if (Listbooks[index]['book_status'] == 'available') {
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            12), // Adjust the border radius as needed
-                        color: Color(0xffede9e1),
+                    return ExpansionTile(
+                      tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                      childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
                       ),
-                      child: ListTile(
-                        leading: Image.network(
-                          Listbooks[index]['img_url'],
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
+                      title: Text(
+                        Listbooks[index]['book_name'],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                Listbooks[index]['book_name'],
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '대여 가능',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Container(
-                            margin: EdgeInsets.only(top: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
-                                ),
-                              ],
-                            )),
-                        // Add more details or actions if needed
                       ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                          ),
+                        ],
+                      ),
+                      trailing: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '대여 가능',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      children: [
+                        ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showMapDialog(
+                                      double.parse(Listbooks[index]['latitude']),
+                                      double.parse(Listbooks[index]['longitude']),
+                                    );
+                                  },
+                                  child: Text('장소 보기'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   } else if (Listbooks[index]['book_status'] == 'reading') {
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            12), // Adjust the border radius as needed
-                        color: Color(0xffede9e1),
+                    return ExpansionTile(
+                      tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                      childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
                       ),
-                      child: ListTile(
-                        leading: Image.network(
-                          Listbooks[index]['img_url'],
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
+                      title: Text(
+                        Listbooks[index]['book_name'],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                Listbooks[index]['book_name'],
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '대여중',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Container(
-                            margin: EdgeInsets.only(top: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
-                                ),
-                              ],
-                            )
-                            // Add more details or actions if needed
-                            ),
                       ),
-                    );
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                          ),
+                        ],
+                      ),
+                      trailing: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '대여중',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      children: [
+                        ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showMapDialog(
+                                      double.parse(Listbooks[index]['latitude']),
+                                      double.parse(Listbooks[index]['longitude']),
+                                    );
+                                  },
+                                  child: Text('장소 보기'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                  );
+
                   } else if (Listbooks[index]['book_status'] == 'unavailable') {
-                    return Container(
-                      margin: EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                            12), // Adjust the border radius as needed
-                        color: Color(0xffede9e1),
+                    return ExpansionTile(
+                      tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                      childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                      leading: Image.network(
+                        Listbooks[index]['img_url'],
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
                       ),
-                      child: ListTile(
-                        leading: Image.network(
-                          Listbooks[index]['img_url'],
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
+                      title: Text(
+                        Listbooks[index]['book_name'],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                Listbooks[index]['book_name'],
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '대여 불가',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        subtitle: Container(
-                            margin: EdgeInsets.only(top: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
-                                ),
-                              ],
-                            )),
-                        // Add more details or actions if needed
                       ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                          ),
+                        ],
+                      ),
+                      trailing: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '대여 불가',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      children: [
+                        ListTile(
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    _showMapDialog(
+                                      double.parse(Listbooks[index]['latitude']),
+                                      double.parse(Listbooks[index]['longitude']),
+                                    );
+                                  },
+                                  child: Text('장소 보기'),
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Color(0xffede9e1), // Change button color
+                                    onPrimary: Colors.black, // Change text color
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   }
                 },

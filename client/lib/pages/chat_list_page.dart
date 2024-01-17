@@ -35,7 +35,7 @@ class _ChatListState extends State<ChatList> {
     String url = 'http://172.10.7.78/get_chat_list';
 
     final Map<String, dynamic> data = {
-      'myid': userId,
+      'myid': 'qq', //아거 userid로 고쳐야함
     };
     print('Sending data: $data');
     try {
@@ -74,7 +74,7 @@ class _ChatListState extends State<ChatList> {
                 MaterialPageRoute(
                   builder: (context) => ChatPage(
                     bookIndex: chatList[index]['bookid'],
-                    yourId: userId,
+                    yourId: chatList[index]['yourid'],
                   ),
                 ),
               );

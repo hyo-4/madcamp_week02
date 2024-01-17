@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:client/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
   final int bookIndex;
@@ -20,23 +23,62 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _messages = [];
-  late io.Socket _socket;
+  final List _messages = [];
+  //late io.Socket _socket;
+  late SocketService _socketService;
   String userId = '';
   String yourId = '';
-  late int bookid;
+  int? bookid;
+  List<Map<String, dynamic>> contentList2 = [];
+
+  Future<void> getchat() async {
+    const String url = 'http://172.10.7.78/get_chat_content';
+
+    final Map<String, dynamic> data = {
+      'myid': 'qq',
+      'yourid': 'sh',
+      'bookid': 28
+    }; //지정된 user말고 변수 넣어서 여러명과 채팅방 구현하기
+    print('Sending data: $data');
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: jsonEncode(data),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<dynamic> contentList = data['content_list'];
+
+        if (mounted) {
+          setState(() {
+            _messages.addAll(contentList);
+          });
+        }
+      } else {
+        throw Exception('Failed to load chat list');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    getchat();
+    _socketService = SocketService(onMessageReceived: _displayMessage);
     loadUserId();
-    _initSocket();
+    _socketService.initSocket();
   }
 
   void _displayMessage(String message) {
-    setState(() {
-      _messages.add(message);
-    });
+    if (mounted) {
+      setState(() {
+        _messages.add(message);
+      });
+    }
   }
 
   Future<void> loadUserId() async {
@@ -48,35 +90,11 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _initSocket() {
-    _socket = io.io('ws://172.10.7.78', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
-
-    _socket.on('connect', (_) {
-      print('Socket connected');
-    });
-
-    _socket.on('message', (data) {
-      final receivedMessage = data.toString();
-      setState(() {
-        _messages.add(receivedMessage);
-      });
-    });
-
-    _socket.on('disconnect', (_) {
-      print('Socket disconnected');
-    });
-
-    _socket.connect();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chatting App'),
+        title: Text(yourId),
       ),
       body: Column(
         children: [
@@ -84,8 +102,11 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
+                Map<String, dynamic> message = _messages[index];
+
                 return ListTile(
-                  title: Text(_messages[index]),
+                  title: Text(message['myid']),
+                  subtitle: Text(message['content']),
                 );
               },
             ),
@@ -117,25 +138,22 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          _socket.emit('message', {
-            'myid': userId,
-            'yourid': yourId,
-            'content': _messageController.text,
-            'bookid': bookid,
-            'register_id': userId,
-          });
-          _messageController.clear();
-        });
-      }
+    if (_messageController.text.isNotEmpty && mounted) {
+      setState(() {
+        _socketService.sendMessage(
+          userId: userId,
+          yourId: yourId,
+          message: _messageController.text,
+          bookId: bookid!,
+        );
+        _messageController.clear();
+      });
     }
   }
 
   @override
   void dispose() {
-    _socket.disconnect();
+    _socketService.disconnectSocket(); // Disconnect the socket
     super.dispose();
   }
 }

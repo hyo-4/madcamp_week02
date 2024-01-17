@@ -26,21 +26,29 @@ class _ChatPageState extends State<ChatPage> {
   final List _messages = [];
   //late io.Socket _socket;
   late SocketService _socketService;
+  String yourid = '';
   String userId = '';
-  String yourId = '';
   int? bookid;
   List sendList = [];
 
   Future<void> getchat() async {
     const String url = 'http://172.10.7.78/get_chat_content';
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ?? 'qq';
+      yourid = widget.yourId;
+      bookid = widget.bookIndex;
+    });
+
     final Map<String, dynamic> data = {
-      'myid': 'qq',
-      'yourid': 'sh',
-      'bookid': 28
+      'myid': userId,
+      'yourid': yourid,
+      'bookid': bookid
     };
-    print('Sending data: $data');
+
     try {
+      print('Sending data: $data');
       final response = await http.post(
         Uri.parse(url),
         body: jsonEncode(data),
@@ -49,6 +57,7 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
         List contentList = data['content_list'];
         List contentValues =
             contentList.map((item) => item['content']).toList();
@@ -71,7 +80,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     getchat();
     _socketService = SocketService(onMessageReceived: _displayMessage);
-    loadUserId();
+    //loadUserId();
     _socketService.initSocket();
   }
 
@@ -79,21 +88,21 @@ class _ChatPageState extends State<ChatPage> {
     if (mounted) {
       setState(() {
         _messages.add(message);
-        Map<String, dynamic> messageMap = json.decode(message);
-        String myId = messageMap["myid"];
-        print("Received message from $myId");
+        // Map<String, dynamic> messageMap = json.decode(message);
+        // String myId = messageMap["myid"];
+        // print("Received message from $myId");
       });
     }
   }
 
-  Future<void> loadUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userId = prefs.getString('user_id') ?? '';
-      yourId = widget.yourId;
-      bookid = widget.bookIndex;
-    });
-  }
+  // Future<void> loadUserId() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     userId = prefs.getString('user_id') ?? '';
+  //     //yourId = widget.yourId;
+  //     bookid = widget.bookIndex;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +153,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _socketService.sendMessage(
           userId: userId,
-          yourId: yourId,
+          yourId: yourid,
           message: _messageController.text,
           bookId: bookid!,
         );

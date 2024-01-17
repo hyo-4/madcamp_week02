@@ -29,7 +29,7 @@ class _ChatPageState extends State<ChatPage> {
   String userId = '';
   String yourId = '';
   int? bookid;
-  List<Map<String, dynamic>> contentList2 = [];
+  List sendList = [];
 
   Future<void> getchat() async {
     const String url = 'http://172.10.7.78/get_chat_content';
@@ -38,7 +38,7 @@ class _ChatPageState extends State<ChatPage> {
       'myid': 'qq',
       'yourid': 'sh',
       'bookid': 28
-    }; //지정된 user말고 변수 넣어서 여러명과 채팅방 구현하기
+    };
     print('Sending data: $data');
     try {
       final response = await http.post(
@@ -49,11 +49,13 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        List<dynamic> contentList = data['content_list'];
+        List contentList = data['content_list'];
+        List contentValues =
+            contentList.map((item) => item['content']).toList();
 
         if (mounted) {
           setState(() {
-            _messages.addAll(contentList);
+            _messages.addAll(contentValues);
           });
         }
       } else {
@@ -77,6 +79,9 @@ class _ChatPageState extends State<ChatPage> {
     if (mounted) {
       setState(() {
         _messages.add(message);
+        Map<String, dynamic> messageMap = json.decode(message);
+        String myId = messageMap["myid"];
+        print("Received message from $myId");
       });
     }
   }
@@ -94,7 +99,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(yourId),
+        title: const Text('Chatting App'),
       ),
       body: Column(
         children: [
@@ -102,11 +107,8 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                Map<String, dynamic> message = _messages[index];
-
                 return ListTile(
-                  title: Text(message['myid']),
-                  subtitle: Text(message['content']),
+                  title: Text(_messages[index]),
                 );
               },
             ),

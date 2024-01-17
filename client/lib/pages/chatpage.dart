@@ -24,23 +24,38 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final List _messages = [];
+  String roomid = "";
+  bool me = false;
   //late io.Socket _socket;
   late SocketService _socketService;
+  String yourid = '';
   String userId = '';
-  String yourId = '';
   int? bookid;
-  List<Map<String, dynamic>> contentList2 = [];
+  List sendList = [];
+  final List messageId = [];
 
   Future<void> getchat() async {
     const String url = 'http://172.10.7.78/get_chat_content';
 
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('user_id') ?? 'qq';
+      yourid = widget.yourId;
+      bookid = widget.bookIndex;
+
+      if (userId.compareTo(yourid) > 0) {
+        roomid = '$bookid|$yourid|$userId';
+      } else {
+        roomid = '$bookid|$userId|$yourid';
+      }
+    });
+
     final Map<String, dynamic> data = {
-      'myid': 'qq',
-      'yourid': 'sh',
-      'bookid': 28
-    }; //지정된 user말고 변수 넣어서 여러명과 채팅방 구현하기
-    print('Sending data: $data');
+      'chatroom_id': roomid,
+    };
+
     try {
+      print('Sending data: $data');
       final response = await http.post(
         Uri.parse(url),
         body: jsonEncode(data),
@@ -49,11 +64,16 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        List<dynamic> contentList = data['content_list'];
+
+        List contentList = data['content_list'];
+        List contentValues =
+            contentList.map((item) => item['content']).toList();
+        List contentValues2 = contentList.map((item) => item['myid']).toList();
 
         if (mounted) {
           setState(() {
-            _messages.addAll(contentList);
+            _messages.addAll(contentValues);
+            messageId.addAll(contentValues2);
           });
         }
       } else {
@@ -69,7 +89,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     getchat();
     _socketService = SocketService(onMessageReceived: _displayMessage);
-    loadUserId();
+    //loadUserId();
     _socketService.initSocket();
   }
 
@@ -77,40 +97,73 @@ class _ChatPageState extends State<ChatPage> {
     if (mounted) {
       setState(() {
         _messages.add(message);
+        if (me) {
+          messageId.add(userId);
+        } else {
+          messageId.add(yourid);
+        }
+        me = false;
       });
     }
   }
 
-  Future<void> loadUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userId = prefs.getString('user_id') ?? '';
-      yourId = widget.yourId;
-      bookid = widget.bookIndex;
-    });
-  }
+  // Future<void> loadUserId() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     userId = prefs.getString('user_id') ?? '';
+  //     //yourId = widget.yourId;
+  //     bookid = widget.bookIndex;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(yourId),
+        title: Text(yourid.toString()),
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                Map<String, dynamic> message = _messages[index];
+              child: ListView.builder(
+            itemCount: _messages.length,
+            itemBuilder: (context, index) {
+              bool isCurrentUser =
+                  messageId[index] == userId; // 현재 사용자의 메시지 여부 확인
 
-                return ListTile(
-                  title: Text(message['myid']),
-                  subtitle: Text(message['content']),
-                );
-              },
-            ),
-          ),
+              return Container(
+                alignment: isCurrentUser
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: Card(
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  color: isCurrentUser
+                      ? const Color(0xffede9e1)
+                      : const Color.fromARGB(255, 255, 238, 205),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    height: 80,
+                    padding: const EdgeInsets.all(8),
+                    child: ListTile(
+                      title: Text(
+                        _messages[index],
+                        style: const TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                      subtitle: Text(
+                        messageId[index],
+                        style: const TextStyle(
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          )),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
@@ -140,9 +193,10 @@ class _ChatPageState extends State<ChatPage> {
   void _sendMessage() {
     if (_messageController.text.isNotEmpty && mounted) {
       setState(() {
+        me = true;
         _socketService.sendMessage(
           userId: userId,
-          yourId: yourId,
+          yourId: yourid,
           message: _messageController.text,
           bookId: bookid!,
         );

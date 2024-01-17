@@ -83,14 +83,65 @@ class _ChatListState extends State<ChatList> {
                 ),
               );
             },
-            child: ListTile(
-              title: Text('User: ${chatList[index]['yourid']}'),
-              subtitle: Text('책: ${chatList[index]['bookid']}'),
-              // Add more widgets or customize as needed
+            child: Container(
+              padding: EdgeInsets.all(16),
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 3,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Book Image
+                  Container(
+                    width: 80,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: NetworkImage(chatList[index]['book_row'][0][8]), // Book Image URL
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Conversation Partner ID
+                        Text(
+                          '상대방: ${chatList[index]['yourid']}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 8),
+                        // Book Title
+                        Text(
+                          '책 제목: ${chatList[index]['book_row'][0][2]}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        // Author
+                        Text('저자: ${chatList[index]['book_row'][0][3]}'),
+                        // Publisher
+                        Text('출판사: ${chatList[index]['book_row'][0][4]}'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
+
     );
   }
 }

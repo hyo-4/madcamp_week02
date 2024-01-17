@@ -252,117 +252,226 @@ class _MapPageState extends State<MapPage> {
                   child: Container(
                     color: Colors.white,
                     child: ListView.builder(
-                      controller: scrollController,
+                      shrinkWrap: true, // Important to set shrinkWrap to true
+                      physics:
+                      NeverScrollableScrollPhysics(), // Disable scrolling for inner ListView
                       itemCount: Listbooks.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Theme(
-                          data: Theme.of(context)
-                              .copyWith(dividerColor: Colors.transparent),
-                          child: ExpansionTile(
-                            title: ListTile(
-                              title: Text(
-                                Listbooks[index]["book_name"],
-                                style: const TextStyle(
-                                  fontSize: 28.0,
+                      itemBuilder: (context, index) {
+                        if (Listbooks[index]['book_status'] == 'available') {
+                          return ExpansionTile(
+                            tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                            childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                            leading: Image.network(
+                              Listbooks[index]['img_url'],
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                                ),
+                              ],
+                            ),
+                            trailing: Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '대여 가능',
+                                style: TextStyle(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                      "Book Owner: ${Listbooks[index]["register_id"]}"),
-                                  Text(
-                                      "Publisher: ${Listbooks[index]["publisher"]}"),
-                                  Text(
-                                      "Published Year: ${Listbooks[index]["published_year"]}"),
-                                ],
-                              ),
-                              leading: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.rectangle,
-                                ),
-                                child: Image(
-                                  fit: BoxFit.cover,
-                                  image: Listbooks[index]['img_url'] != null
-                                      ? NetworkImage(
-                                          Listbooks[index]['img_url'])
-                                      : const AssetImage(
-                                              'assets/placeholder_image.png')
-                                          as ImageProvider,
-                                  errorBuilder: (BuildContext context,
-                                      Object error, StackTrace? stackTrace) {
-                                    print('Error loading image: $error');
-                                    // Return a placeholder image or handle the error as needed
-                                    return Image.asset(
-                                        'assets/images/image1.jpg',
-                                        fit: BoxFit.cover);
-                                  },
-                                ),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedItemIndex = index;
-                                  // if (index >= 0 &&
-                                  //     index < Listbooks.length &&
-                                  //     selectedItemIndex != null) {
-                                  //   if (minHeight > 0.2 && maxHeight > 0.2) {
-                                  //     minHeight = 0.2;
-                                  //     maxHeight = 0.2;
-                                  //   } else {
-                                  //     minHeight = 0.4;
-                                  //     maxHeight = 0.4;
-                                  //   }
-                                  // }
-                                });
-                                _focusMarkerOnListViewItemClick(
-                                  LatLng(
-                                    double.parse(Listbooks[index]["latitude"]),
-                                    double.parse(Listbooks[index]["longitude"]),
-                                  ),
-                                  Listbooks[index]['book_name'],
-                                  // 'Test'
-                                );
-                              },
                             ),
-                            children: <Widget>[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  const Text("이 책을 읽고 싶어요!"),
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 30.0),
-                                    child: ElevatedButton(
+                            children: [
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    // Optional: Adjust spacing between buttons
+                                    Expanded(
+                                      child: ElevatedButton(
                                         onPressed: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) => ChatPage(
                                                 bookIndex: Listbooks[index]
-                                                    ['book_index'],
+                                                ['book_index'],
                                                 yourId: Listbooks[index]
-                                                    ['register_id'],
+                                                ['register_id'],
                                               ),
                                             ),
                                           );
                                         },
+                                        child: Text('1:1 채팅하기'),
                                         style: ElevatedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          backgroundColor: Colors.amber,
+                                          primary: Color(0xfff3ae2b), // Change button color
+                                          onPrimary: Colors.black, // Change text color
                                         ),
-                                        child: const Text("1:1채팅방으로 이동하기")),
-                                  ),
-                                ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
-                          ),
-                        );
+                          );
+                        } else if (Listbooks[index]['book_status'] == 'reading') {
+                          return ExpansionTile(
+                            tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                            childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                            leading: Image.network(
+                              Listbooks[index]['img_url'],
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                                ),
+                              ],
+                            ),
+                            trailing: Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '대여중',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            children: [
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    // Optional: Adjust spacing between buttons
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ChatPage(
+                                                bookIndex: Listbooks[index]
+                                                ['book_index'],
+                                                yourId: Listbooks[index]
+                                                ['register_id'],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text('1:1 채팅하기'),
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Color(0xfff3ae2b), // Change button color
+                                          onPrimary: Colors.black, // Change text color
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+
+                        } else if (Listbooks[index]['book_status'] == 'unavailable') {
+                          return ExpansionTile(
+                            tilePadding: EdgeInsets.all(0), // Optional: Adjust padding as needed
+                            childrenPadding: EdgeInsets.all(16), // Optional: Adjust padding as needed
+                            leading: Image.network(
+                              Listbooks[index]['img_url'],
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(
+                              Listbooks[index]['book_name'],
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '저자: ${Listbooks[index]['author']}   출판사: ${Listbooks[index]['publisher']} (${Listbooks[index]['published_year']})',
+                                ),
+                              ],
+                            ),
+                            trailing: Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '대여 불가',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            children: [
+                              ListTile(
+                                title: Row(
+                                  children: [
+                                    // Optional: Adjust spacing between buttons
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ChatPage(
+                                                bookIndex: Listbooks[index]
+                                                ['book_index'],
+                                                yourId: Listbooks[index]
+                                                ['register_id'],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text('1:1 채팅하기'),
+                                        style: ElevatedButton.styleFrom(
+                                          primary: Color(0xfff3ae2b), // Change button color
+                                          onPrimary: Colors.black, // Change text color
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        }
                       },
                     ),
                   ),
